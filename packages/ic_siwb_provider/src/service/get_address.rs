@@ -2,7 +2,6 @@ use ic_cdk::query;
 use ic_siwb::bitcoin::Network::{Bitcoin, Regtest, Signet, Testnet};
 use ic_siwb::bitcoin::{Address, ScriptBuf};
 use ic_stable_structures::storable::Blob;
-use ic_stable_structures::Storable;
 use serde_bytes::ByteBuf;
 
 use crate::{PRINCIPAL_ADDRESS, SETTINGS};

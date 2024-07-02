@@ -87,9 +87,9 @@ pub fn get_script_from_address(address: String) -> Result<AddressInfo, String> {
         .map_err(|e| format!("Cannot require network {:?}", e).to_string())?;
 
     Ok(AddressInfo {
-        address_raw: addr_checked,
-        address: addr_checked.to_string(),
-        script_buf: addr_checked.script_pubkey(),
+        address_raw: addr_checked.clone(),
+        address: addr_checked.clone().to_string(),
+        script_buf: addr_checked.clone().script_pubkey(),
         network,
         address_type,
     })

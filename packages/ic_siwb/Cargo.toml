@@ -8,8 +8,6 @@ license = "MIT"
 homepage = "https://github.com/AstroxNetwork/ic-siwb"
 repository = "https://github.com/AstroxNetwork/ic-siwb"
 
-[lib]
-crate-type = ["cdylib"]
 
 [dependencies]
 serde = { version = "1.0.188", features = ["derive"] }

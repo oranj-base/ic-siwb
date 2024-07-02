@@ -33,7 +33,7 @@ use crate::{
 const MAX_SIGS_TO_PRUNE: usize = 10;
 const MAGIC_BYTES: &str = "Bitcoin Signed Message:\n";
 
-pub struct BtcSignature(String);
+pub struct BtcSignature(pub String);
 
 /// This function is the first step of the user login process. It validates the provided Ethereum address,
 /// creates a SIWE message, saves it for future use, and returns it.

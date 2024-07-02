@@ -42,7 +42,6 @@ for the `ic_siwe_provider` canister also provide a good overview of how to integ
 See [README.md](../README.md) for more information.
  */
 use crate::service::types::AddressScriptBuf;
-use ic_cdk::api::management_canister::bitcoin::BitcoinNetwork;
 use ic_cdk::api::set_certified_data;
 use ic_certified_map::{fork_hash, labeled_hash, AsHashTree, Hash, RbTree};
 use ic_siwb::signature_map::SignatureMap;

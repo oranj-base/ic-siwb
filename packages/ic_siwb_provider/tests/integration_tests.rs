@@ -9,8 +9,8 @@ use ic_agent::Identity;
 use ic_siwb::{delegation::SignedDelegation, login::LoginDetails};
 use pocket_ic::PocketIc;
 use serde_bytes::ByteBuf;
-use std::time::Duration;
 use siwe::Message;
+use std::time::Duration;
 
 use crate::common::{prepare_login_and_sign_message, SettingsInput};
 

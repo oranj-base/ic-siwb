@@ -2,6 +2,7 @@ use ic_stable_structures::storable::Bound;
 use ic_stable_structures::Storable;
 use std::borrow::Cow;
 
+#[derive(Ord, Eq, PartialEq, PartialOrd, Clone)]
 pub struct AddressScriptBuf(pub Vec<u8>);
 
 impl Storable for AddressScriptBuf {

@@ -1,8 +1,6 @@
 use candid::Principal;
 use ic_cdk::update;
-use std::str::FromStr;
 
-use ic_siwb::bitcoin::Address;
 use ic_siwb::login::{BtcSignature, LoginDetails};
 use ic_siwb::utils::get_script_from_address;
 use ic_stable_structures::storable::Blob;
@@ -73,12 +71,12 @@ fn manage_principal_address_mappings(principal: &Blob<29>, address: &AddressScri
     SETTINGS.with(|s| {
         if !s.borrow().disable_principal_to_btc_mapping {
             PRINCIPAL_ADDRESS.with(|pa| {
-                pa.borrow_mut().insert(*principal, address.as_byte_array());
+                pa.borrow_mut().insert(*principal, address.clone());
             });
         }
         if !s.borrow().disable_btc_to_principal_mapping {
             ADDRESS_PRINCIPAL.with(|ap| {
-                ap.borrow_mut().insert(address.as_byte_array(), *principal);
+                ap.borrow_mut().insert(address.clone(), *principal);
             });
         }
     });
