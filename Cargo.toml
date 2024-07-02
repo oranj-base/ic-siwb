@@ -4,6 +4,7 @@ members = [
     "packages/ic_siwe",
     "packages/ic_siwb_provider",
     "packages/ic_siwb",
+    "packages/ic_siwb_test_canister",
     "packages/test_canister"
 ]
 resolver = "2"

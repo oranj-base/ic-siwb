@@ -1901,6 +1901,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "ic_siwb_test_canister"
+version = "0.1.0"
+dependencies = [
+ "candid",
+ "ic-cdk 0.11.3",
+]
+
+[[package]]
 name = "ic_siwe"
 version = "0.0.6"
 dependencies = [

@@ -129,7 +129,7 @@ impl From<SiwbMessage> for String {
         let expiration_iso_8601 = expiration_datetime.format(&Rfc3339).unwrap();
 
         format!(
-            "{domain} wants you to sign in with your Ethereum account:\n\
+            "{domain} wants you to sign in with your Bitcoin account:\n\
             {address}\n\n\
             {statement}\n\n\
             URI: {uri}\n\

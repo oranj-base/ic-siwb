@@ -1,5 +1,15 @@
 {
   "canisters": {
+    "ic_siwb_provider": {
+      "candid": "packages/ic_siwb_provider/ic_siwb_provider.did",
+      "package": "ic_siwb_provider",
+      "type": "rust"
+    },
+    "ic_siwb_test_canister": {
+      "candid": "packages/ic_siwb_test_canister/ic_siwb_test_canister.did",
+      "package": "ic_siwb_test_canister",
+      "type": "rust"
+    },
     "ic_siwe_provider": {
       "candid": "packages/ic_siwe_provider/ic_siwe_provider.did",
       "package": "ic_siwe_provider",
