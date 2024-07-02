@@ -1909,54 +1909,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ic_siwe"
-version = "0.0.6"
-dependencies = [
- "candid",
- "ethers",
- "getrandom",
- "hex",
- "hex-literal",
- "ic-cdk 0.11.3",
- "ic-cdk-timers",
- "ic-certified-map",
- "k256",
- "rand",
- "rand_chacha",
- "serde",
- "serde_bytes",
- "serde_cbor",
- "serde_json",
- "sha2 0.9.9",
- "simple_asn1",
- "time",
- "tiny-keccak",
- "tokio",
- "url",
-]
-
-[[package]]
-name = "ic_siwe_provider"
-version = "0.0.6"
-dependencies = [
- "candid",
- "ethers",
- "hex",
- "ic-agent",
- "ic-cdk 0.11.3",
- "ic-certified-map",
- "ic-stable-structures",
- "ic_siwe",
- "pocket-ic",
- "rand",
- "ring 0.16.20",
- "serde",
- "serde_bytes",
- "serde_json",
- "siwe",
-]
-
-[[package]]
 name = "icrc-ledger-types"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3818,14 +3770,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ff1bc3d3f05aff0403e8ac0d92ced918ec05b666a43f83297ccef5bea8a3d449"
 dependencies = [
  "winapi-util",
-]
-
-[[package]]
-name = "test_canister"
-version = "0.1.0"
-dependencies = [
- "candid",
- "ic-cdk 0.11.3",
 ]
 
 [[package]]
