@@ -397,3 +397,100 @@ pub fn verify_address(address: &str, pub_bytes: Vec<u8>) -> Result<String, Strin
         _ => Err("Unknown Address".to_string()),
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::login::{_verify_message, verify_address};
+
+    #[test]
+    fn test_get_address() {
+        let p2tr_t = verify_address(
+            "tb1pgvdp7lf89d62zadds5jvyjntxmr7v70yv33g7vqaeu2p0cuexveqjlwphr",
+            hex::decode("03133c85d348d6c0796382966380719397453592e706cd3329119a2d2cb8d2ff7b")
+                .unwrap(),
+        );
+        let p2tr = verify_address(
+            "bc1pgvdp7lf89d62zadds5jvyjntxmr7v70yv33g7vqaeu2p0cuexveq9hcwdv",
+            hex::decode("03133c85d348d6c0796382966380719397453592e706cd3329119a2d2cb8d2ff7b")
+                .unwrap(),
+        );
+        assert_eq!(
+            p2tr_t.unwrap(),
+            "tb1pgvdp7lf89d62zadds5jvyjntxmr7v70yv33g7vqaeu2p0cuexveqjlwphr".to_string()
+        );
+        assert_eq!(
+            p2tr.unwrap(),
+            "bc1pgvdp7lf89d62zadds5jvyjntxmr7v70yv33g7vqaeu2p0cuexveq9hcwdv".to_string()
+        );
+
+        let p2shp2wpkh_t = verify_address(
+            "2NBbnaYUvZvrvKfd7wqMmt7bZoAMTSkAarU",
+            hex::decode("02e203c98d766554bb4dab431d70b014b505aac66f47b735d9e7cbb4f12108ac3d")
+                .unwrap(),
+        );
+        let p2shp2wpkh = verify_address(
+            "3L3aWoYtxUMa7szaGhjuGAcJap9Hb13EEP",
+            hex::decode("02e203c98d766554bb4dab431d70b014b505aac66f47b735d9e7cbb4f12108ac3d")
+                .unwrap(),
+        );
+        assert_eq!(
+            p2shp2wpkh_t.unwrap(),
+            "2NBbnaYUvZvrvKfd7wqMmt7bZoAMTSkAarU".to_string()
+        );
+        assert_eq!(
+            p2shp2wpkh.unwrap(),
+            "3L3aWoYtxUMa7szaGhjuGAcJap9Hb13EEP".to_string()
+        );
+
+        let p2wpkh_t = verify_address(
+            "tb1qshqyem2rf8jyla904gd2cvek2k8nz5z3vc2j3x",
+            hex::decode("03f72a781776c63888aa9af5478c72c4794165a44024679995f6d232b4f6254574")
+                .unwrap(),
+        );
+        let p2wpkh = verify_address(
+            "bc1qshqyem2rf8jyla904gd2cvek2k8nz5z3x73p24",
+            hex::decode("03f72a781776c63888aa9af5478c72c4794165a44024679995f6d232b4f6254574")
+                .unwrap(),
+        );
+        assert_eq!(
+            p2wpkh_t.unwrap(),
+            "tb1qshqyem2rf8jyla904gd2cvek2k8nz5z3vc2j3x".to_string()
+        );
+        assert_eq!(
+            p2wpkh.unwrap(),
+            "bc1qshqyem2rf8jyla904gd2cvek2k8nz5z3x73p24".to_string()
+        );
+
+        let p2pkh_t = verify_address(
+            "mt1ycNxRhKVf1JyHhrKQEuuMoBnSPrwxfM",
+            hex::decode("03133c85d348d6c0796382966380719397453592e706cd3329119a2d2cb8d2ff7b")
+                .unwrap(),
+        );
+        let p2pkh = verify_address(
+            "1DW2KKsStJ4QECVfzHM2Qzh2wCBjTe9TH1",
+            hex::decode("03133c85d348d6c0796382966380719397453592e706cd3329119a2d2cb8d2ff7b")
+                .unwrap(),
+        );
+        assert_eq!(
+            p2pkh_t.unwrap(),
+            "mt1ycNxRhKVf1JyHhrKQEuuMoBnSPrwxfM".to_string()
+        );
+        assert_eq!(
+            p2pkh.unwrap(),
+            "1DW2KKsStJ4QECVfzHM2Qzh2wCBjTe9TH1".to_string()
+        );
+    }
+    #[test]
+    fn test_message() {
+        let p = "03133c85d348d6c0796382966380719397453592e706cd3329119a2d2cb8d2ff7b".to_string();
+        let s =  "HPVVoaHfyCUER9YB6MC8C+eh3in24rHTScQopgwzzEx6GP9fwZBI+ZIesS1HNzbMzMgLFS10IyhMc6aYbn3zfI4=".to_string();
+        let m = "{\"a\":1,\"b\":[2,3,4]}".to_string();
+        let a = "tb1pgvdp7lf89d62zadds5jvyjntxmr7v70yv33g7vqaeu2p0cuexveqjlwphr".to_string();
+
+        let v = _verify_message(m, s, p);
+        println!("v is {:?}", v);
+
+        let v2 = verify_address(a.as_str(), v.unwrap());
+        println!("v2 is {:?}", v2);
+    }
+}
