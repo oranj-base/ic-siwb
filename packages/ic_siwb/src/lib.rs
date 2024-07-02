@@ -1,23 +1,25 @@
 pub mod delegation;
-pub mod hash;
-pub mod macros;
-pub mod signature_map;
-pub mod time;
-pub mod settings;
-pub mod rand;
-pub mod init;
-pub mod siwb;
-pub mod login;
 pub mod error;
+pub mod hash;
+pub mod init;
+pub mod login;
+pub mod macros;
+pub mod rand;
+pub mod settings;
+pub mod signature_map;
+pub mod siwb;
+pub mod time;
+pub mod utils;
+pub use bitcoin;
 
 pub use init::init;
 
 use std::cell::RefCell;
 
-#[cfg(feature = "nonce")]
-use rand_chacha::ChaCha20Rng;
 use crate::settings::Settings;
 use crate::siwb::SiwbMessageMap;
+#[cfg(feature = "nonce")]
+use rand_chacha::ChaCha20Rng;
 
 thread_local! {
     // The random number generator is used to generate nonces for SIWE messages. This feature is

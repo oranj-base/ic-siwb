@@ -2,6 +2,7 @@
 members = [
     "packages/ic_siwe_provider",
     "packages/ic_siwe",
+    "packages/ic_siwb_provider",
     "packages/ic_siwb",
     "packages/test_canister"
 ]

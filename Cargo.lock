@@ -147,6 +147,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4c7f02d4ea65f2c1853089ffd8d2787bdbc63de2f0d29dedbcf8ccdfa0ccd4cf"
 
 [[package]]
+name = "base32"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "23ce669cd6c8588f79e15cf450314f9638f967fc5770ff1c7c1deb0925ea7cfa"
+
+[[package]]
 name = "base64"
 version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1857,6 +1863,7 @@ dependencies = [
  "ic-cdk 0.11.3",
  "ic-cdk-timers",
  "ic-certified-map",
+ "icrc-ledger-types",
  "k256",
  "rand",
  "rand_chacha",
@@ -1870,6 +1877,27 @@ dependencies = [
  "tiny-keccak",
  "tokio",
  "url",
+]
+
+[[package]]
+name = "ic_siwb_provider"
+version = "0.0.6"
+dependencies = [
+ "candid",
+ "ethers",
+ "hex",
+ "ic-agent",
+ "ic-cdk 0.11.3",
+ "ic-certified-map",
+ "ic-stable-structures",
+ "ic_siwb",
+ "pocket-ic",
+ "rand",
+ "ring 0.16.20",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "siwe",
 ]
 
 [[package]]
@@ -1918,6 +1946,23 @@ dependencies = [
  "serde_bytes",
  "serde_json",
  "siwe",
+]
+
+[[package]]
+name = "icrc-ledger-types"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dafdc6d688022822cda32f534ea13bb0b72b5f1a82235fbb4bc24250b1d8418b"
+dependencies = [
+ "base32",
+ "candid",
+ "crc32fast",
+ "hex",
+ "num-bigint",
+ "num-traits",
+ "serde",
+ "serde_bytes",
+ "sha2 0.10.8",
 ]
 
 [[package]]
