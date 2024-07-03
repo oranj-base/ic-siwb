@@ -1,6 +1,6 @@
 import { DelegationChain, DelegationIdentity } from '@dfinity/identity';
 import type { LoginStatus, PrepareLoginStatus } from './state.type';
-import type { NetworkItem } from './hooks';
+import type { NetworkItem, WalletProviderKey } from './hooks';
 
 export type SiwbIdentityContextType = {
   /** Is set to `true` on mount until a stored identity is loaded from local storage or
@@ -75,4 +75,12 @@ export type SiwbIdentityContextType = {
   clear: () => void;
 
   network?: NetworkItem;
+
+  setWalletProvider: (providerKey: WalletProviderKey) => Promise<void>;
+
+  selectedProvider?: WalletProviderKey;
+
+  connectedBtcAddress?: string;
+
+  getAddress: () => string | undefined;
 };

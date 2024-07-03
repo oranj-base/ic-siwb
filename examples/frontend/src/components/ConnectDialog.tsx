@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React from 'react';
+import { useEffect, useState } from 'react';
 import { Button, Modal, Spin, Typography } from 'antd';
 import { useSiwbIdentity } from '../siwb';
 
@@ -42,29 +43,42 @@ export default function ConnectDialog({ isOpen, setIsOpen }: { isOpen: boolean; 
   useEffect(() => {}, [loginError]);
 
   return (
-    <Modal className="relative z-50 w-80" open={isOpen}>
+    <Modal
+      className="z-50 w-80"
+      open={isOpen}
+      footer={null}
+      onCancel={() => {
+        setIsOpen(false);
+      }}
+    >
       <Typography.Title> Select Wallet</Typography.Title>
-      <Button
-        key="wizz"
-        onClick={async () => {
-          setManually(true);
-          await setWalletProvider('wizz');
-        }}
-        disabled={loading}
-      >
-        Wizz Wallet
-      </Button>
-      <Button
-        key="unisat"
-        onClick={async () => {
-          setManually(true);
-          await setWalletProvider('unisat');
-        }}
-        disabled={loading}
-      >
-        Unisat Wallet
-      </Button>
-      {loading && <Spin />}
+      <div className="mt-8">
+        <Button
+          key="wizz"
+          onClick={async () => {
+            setManually(true);
+            await setWalletProvider('wizz');
+          }}
+          disabled={loading}
+          block
+        >
+          Wizz Wallet
+        </Button>
+      </div>
+      <div className="mt-8">
+        <Button
+          key="unisat"
+          onClick={async () => {
+            setManually(true);
+            await setWalletProvider('unisat');
+          }}
+          disabled={loading}
+          block
+        >
+          Unisat Wallet
+        </Button>
+      </div>
+      {loading && <Spin fullscreen />}
     </Modal>
   );
 }

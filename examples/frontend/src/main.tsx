@@ -6,7 +6,7 @@ import './index.css';
 // import { SiwbIdentityProvider } from 'ic-use-siwb-identity';
 import type { _SERVICE as siweService } from './idls/ic_siwb_provider.d.ts';
 import { idlFactory as siwbIdl } from './idls/ic_siwb_provider.idl.ts';
-import { SiwbIdentityProvider } from './siwb/index.tsx';
+import { SiwbIdentityProvider } from './siwb';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   //<React.StrictMode>

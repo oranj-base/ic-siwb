@@ -1,5 +1,4 @@
 import React from 'react';
-
 import icLogo from './assets/ic.svg';
 import btcLogo from './assets/btc.svg';
 import './App.css';

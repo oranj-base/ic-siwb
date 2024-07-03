@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, type ReactNode, useEffect, useState, useRef } from 'react';
+// import React, { createContext, useContext, type ReactNode, useEffect, useState, useRef } from 'react';
 import { type ActorConfig, type HttpAgentOptions } from '@dfinity/agent';
 import { DelegationIdentity, Ed25519KeyIdentity } from '@dfinity/identity';
 import type { SiwbIdentityContextType } from './context.type';
@@ -17,6 +18,7 @@ import type { State } from './state.type';
 import { createDelegationChain } from './delegation';
 import { normalizeError } from './error';
 import { getRegisterExtension, type WalletProviderKey } from './hooks';
+import React, { createContext, useContext, type ReactNode, useState, useRef, useEffect } from 'react';
 
 /**
  * Re-export types
