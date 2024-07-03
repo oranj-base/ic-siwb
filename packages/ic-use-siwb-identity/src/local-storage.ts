@@ -2,7 +2,7 @@ import { DelegationChain, DelegationIdentity, Ed25519KeyIdentity } from '@dfinit
 
 import type { SiwbIdentityStorage } from './storage.type';
 
-const STORAGE_KEY = 'siweIdentity';
+const STORAGE_KEY = 'siwbIdentity';
 
 /**
  * Loads the SIWB identity from local storage.
