@@ -3,15 +3,20 @@ import { createContext, useContext, type ReactNode, useEffect, useState, useRef 
 import { type ActorConfig, type HttpAgentOptions } from '@dfinity/agent';
 import { DelegationIdentity, Ed25519KeyIdentity } from '@dfinity/identity';
 import type { SiwbIdentityContextType } from './context.type';
-import { useAccount, useSignMessage } from 'wagmi';
+
+// change wagmi to wizzbtc
+// import { useAccount, useSignMessage } from 'wagmi';
+import type { SignMessageErrorType } from 'wagmi/actions';
+// change wagmi to wizzbtc
+
 import { IDL } from '@dfinity/candid';
 import type { LoginOkResponse, SIWB_IDENTITY_SERVICE, SignedDelegation as ServiceSignedDelegation } from './service.interface';
 import { clearIdentity, loadIdentity, saveIdentity } from './local-storage';
 import { callGetDelegation, callLogin, callPrepareLogin, createAnonymousActor } from './siwb-provider';
 import type { State } from './state.type';
-import type { SignMessageErrorType } from 'wagmi/actions';
 import { createDelegationChain } from './delegation';
 import { normalizeError } from './error';
+import { useRegisterExtension, type WalletProviderKey } from './hooks';
 
 /**
  * Re-export types
@@ -72,6 +77,7 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
   actorOptions,
   idlFactory,
   canisterId,
+  providerKey,
   children,
 }: {
   /** Configuration options for the HTTP agent used to communicate with the Internet Computer network. */
@@ -86,11 +92,19 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
   /** The unique identifier of the canister on the Internet Computer network. This ID is used to establish a connection to the canister. */
   canisterId: string;
 
+  providerKey: WalletProviderKey;
+
   /** The child components that the SiwbIdentityProvider will wrap. This allows any child component to access the authentication context provided by the SiwbIdentityProvider. */
   children: ReactNode;
 }) {
-  const { address: connectedEthAddress } = useAccount();
-  const { signMessage, status: signMessageStatus, reset, error: signMessageError } = useSignMessage();
+  const { provider, address: connectedBtcAddress, network } = useRegisterExtension(providerKey);
+
+  // change wagmi to wizzbtc
+  // const { signMessage, status: signMessageStatus, reset, error: signMessageError } = useSignMessage();
+  // change wagmi to wizzbtc
+
+  let signMessageStatus: 'error' | 'idle' | 'pending' | 'success' = 'idle';
+  let signMessageError = null;
 
   const [state, setState] = useState<State>({
     isInitializing: true,
@@ -119,7 +133,7 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
     if (!state.anonymousActor) {
       throw new Error('Hook not initialized properly. Make sure to supply all required props to the SiwbIdentityProvider.');
     }
-    if (!connectedEthAddress) {
+    if (!connectedBtcAddress) {
       throw new Error('No Ethereum address available. Call prepareLogin after the user has connected their wallet.');
     }
 
@@ -129,7 +143,7 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
     });
 
     try {
-      const siwbMessage = await callPrepareLogin(state.anonymousActor, connectedEthAddress);
+      const siwbMessage = await callPrepareLogin(state.anonymousActor, connectedBtcAddress);
       updateState({
         siwbMessage,
         prepareLoginStatus: 'success',
@@ -164,7 +178,7 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
    * This function is called when the signMessage hook has settled, that is, when the
    * user has signed the message or canceled the signing process.
    */
-  async function onLoginSignatureSettled(loginSignature: `0x${string}` | undefined, error: SignMessageErrorType | null) {
+  async function onLoginSignatureSettled(loginSignature: string | undefined, publickeyHex: string, error: SignMessageErrorType | null) {
     if (error) {
       rejectLoginWithError(error, 'An error occurred while signing the login message.');
       return;
@@ -178,7 +192,7 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
     const sessionIdentity = Ed25519KeyIdentity.generate();
     const sessionPublicKey = sessionIdentity.getPublicKey().toDer();
 
-    if (!state.anonymousActor || !connectedEthAddress) {
+    if (!state.anonymousActor || !connectedBtcAddress) {
       rejectLoginWithError(new Error('Invalid actor or address.'));
       return;
     }
@@ -188,7 +202,7 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
 
     let loginOkResponse: LoginOkResponse;
     try {
-      loginOkResponse = await callLogin(state.anonymousActor, loginSignature, connectedEthAddress, sessionPublicKey);
+      loginOkResponse = await callLogin(state.anonymousActor, loginSignature, connectedBtcAddress, publickeyHex, sessionPublicKey);
     } catch (e) {
       rejectLoginWithError(e, 'Unable to login.');
       return;
@@ -197,7 +211,7 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
     // Call the backend's siwb_get_delegation method to get the delegation.
     let signedDelegation: ServiceSignedDelegation;
     try {
-      signedDelegation = await callGetDelegation(state.anonymousActor, connectedEthAddress, sessionPublicKey, loginOkResponse.expiration);
+      signedDelegation = await callGetDelegation(state.anonymousActor, connectedBtcAddress, sessionPublicKey, loginOkResponse.expiration);
     } catch (e) {
       rejectLoginWithError(e, 'Unable to get identity.');
       return;
@@ -211,12 +225,12 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
     const identity = DelegationIdentity.fromDelegation(sessionIdentity, delegationChain);
 
     // Save the identity to local storage.
-    saveIdentity(connectedEthAddress, sessionIdentity, delegationChain);
+    saveIdentity(connectedBtcAddress, sessionIdentity, delegationChain);
 
     // Set the identity in state.
     updateState({
       loginStatus: 'success',
-      identityAddress: connectedEthAddress,
+      identityAddress: connectedBtcAddress,
       identity,
       delegationChain,
     });
@@ -224,7 +238,7 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
     loginPromiseHandlers.current?.resolve(identity);
 
     // The signMessage hook is reset so that it can be used again.
-    reset();
+    // reset();
   }
 
   /**
@@ -245,7 +259,7 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
       rejectLoginWithError(new Error('Hook not initialized properly. Make sure to supply all required props to the SiwbIdentityProvider.'));
       return promise;
     }
-    if (!connectedEthAddress) {
+    if (!connectedBtcAddress) {
       rejectLoginWithError(new Error('No Ethereum address available. Call login after the user has connected their wallet.'));
       return promise;
     }
@@ -269,13 +283,29 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
         }
       }
 
-      signMessage(
-        { message: siwbMessage },
-        {
-          onSettled: onLoginSignatureSettled,
-        },
-      );
+      if (provider !== undefined) {
+        signMessageStatus = 'pending';
+        const signature = await provider.signMessage(siwbMessage as string);
+        signMessageStatus = 'success';
+        if (signature === undefined) {
+          signMessageStatus = 'error';
+          signMessageError = new Error('No signed message returned.');
+          rejectLoginWithError(signMessageError);
+          return promise;
+        }
+        const pubKey = await provider.getPublicKey();
+        onLoginSignatureSettled(signature, pubKey, null);
+      }
+
+      // signMessage(
+      //   { message: siwbMessage },
+      //   {
+      //     onSettled: onLoginSignatureSettled,
+      //   },
+      // );
     } catch (e) {
+      signMessageStatus = 'error';
+      signMessageError = e;
       rejectLoginWithError(e);
     }
 
@@ -330,7 +360,7 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
     if (state.isInitializing) return;
     clear();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connectedEthAddress]);
+  }, [connectedBtcAddress]);
 
   /**
    * Create an anonymous actor on mount. This actor is used during the login
@@ -364,6 +394,7 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
         isLoginIdle: state.loginStatus === 'idle',
         signMessageStatus,
         signMessageError,
+        network,
         clear,
       }}
     >

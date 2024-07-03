@@ -34,7 +34,7 @@ export function createAnonymousActor({
   });
 }
 
-export async function callPrepareLogin(anonymousActor: ActorSubclass<SIWB_IDENTITY_SERVICE>, address: `0x${string}` | undefined) {
+export async function callPrepareLogin(anonymousActor: ActorSubclass<SIWB_IDENTITY_SERVICE>, address: string | undefined) {
   if (!anonymousActor || !address) {
     throw new Error('Invalid actor or address');
   }
@@ -53,15 +53,16 @@ export async function callPrepareLogin(anonymousActor: ActorSubclass<SIWB_IDENTI
  */
 export async function callLogin(
   anonymousActor: ActorSubclass<SIWB_IDENTITY_SERVICE>,
-  data: `0x${string}` | undefined,
-  address: `0x${string}` | undefined,
+  data: string | undefined,
+  address: string | undefined,
+  publickeyHex: string | undefined,
   sessionPublicKey: DerEncodedPublicKey,
 ) {
-  if (!anonymousActor || !data || !address) {
+  if (!anonymousActor || !data || !address || !publickeyHex) {
     throw new Error('Invalid actor, data or address');
   }
 
-  const loginReponse = await anonymousActor.siwb_login(data, address, new Uint8Array(sessionPublicKey));
+  const loginReponse = await anonymousActor.siwb_login(data, address, publickeyHex, new Uint8Array(sessionPublicKey));
 
   if ('Err' in loginReponse) {
     throw new Error(loginReponse.Err);
@@ -75,7 +76,7 @@ export async function callLogin(
  */
 export async function callGetDelegation(
   anonymousActor: ActorSubclass<SIWB_IDENTITY_SERVICE>,
-  address: `0x${string}` | undefined,
+  address: string | undefined,
   sessionPublicKey: DerEncodedPublicKey,
   expiration: bigint,
 ) {

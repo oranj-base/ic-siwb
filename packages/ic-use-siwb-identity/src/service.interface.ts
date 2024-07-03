@@ -2,6 +2,7 @@ import type { ActorMethod } from '@dfinity/agent';
 import type { Principal } from '@dfinity/principal';
 
 export type Address = string;
+export type PublickeyHex = string;
 
 export type CanisterPublicKey = PublicKey;
 
@@ -39,6 +40,6 @@ export type Timestamp = bigint;
 
 export interface SIWB_IDENTITY_SERVICE {
   siwb_prepare_login: ActorMethod<[Address], PrepareLoginResponse>;
-  siwb_login: ActorMethod<[SiwbSignature, Address, SessionKey], LoginResponse>;
+  siwb_login: ActorMethod<[SiwbSignature, Address, PublickeyHex, SessionKey], LoginResponse>;
   siwb_get_delegation: ActorMethod<[Address, SessionKey, Timestamp], GetDelegationResponse>;
 }

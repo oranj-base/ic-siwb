@@ -1,5 +1,6 @@
 import { DelegationChain, DelegationIdentity } from '@dfinity/identity';
 import type { LoginStatus, PrepareLoginStatus } from './state.type';
+import type { NetworkItem } from './hooks';
 
 export type SiwbIdentityContextType = {
   /** Is set to `true` on mount until a stored identity is loaded from local storage or
@@ -72,4 +73,6 @@ export type SiwbIdentityContextType = {
 
   /** Clears the identity from the state and local storage. Effectively "logs the user out". */
   clear: () => void;
+
+  network?: NetworkItem;
 };
