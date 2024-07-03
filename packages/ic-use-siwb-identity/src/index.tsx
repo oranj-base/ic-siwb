@@ -6,7 +6,7 @@ import type { SiwbIdentityContextType } from './context.type';
 
 // change wagmi to wizzbtc
 // import { useAccount, useSignMessage } from 'wagmi';
-import type { SignMessageErrorType } from 'wagmi/actions';
+// import type { SignMessageErrorType } from 'wagmi/actions';
 // change wagmi to wizzbtc
 
 import { IDL } from '@dfinity/candid';
@@ -178,7 +178,7 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
    * This function is called when the signMessage hook has settled, that is, when the
    * user has signed the message or canceled the signing process.
    */
-  async function onLoginSignatureSettled(loginSignature: string | undefined, publickeyHex: string, error: SignMessageErrorType | null) {
+  async function onLoginSignatureSettled(loginSignature: string | undefined, publickeyHex: string, error: Error | null) {
     if (error) {
       rejectLoginWithError(error, 'An error occurred while signing the login message.');
       return;

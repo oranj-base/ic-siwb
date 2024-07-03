@@ -1,13 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // import type { IWalletProvider } from '@wizz-btc/provider';
-import type { SignMessageType } from '@wizz-btc/provider';
-import {
-  // AddressType,
-  // bitcoin,
-  //detectAddressTypeToScripthash, getAddressType,
-  type SignOptions,
-} from '@wizz-btc/wallet';
-import type EventEmitter from 'events';
+
+export type SignMessageType = 'ecdsa' | 'bip322-simple';
 
 import { useEffect, useState } from 'react';
 
@@ -15,7 +9,7 @@ export type WalletProviderKey = 'wizz' | 'unisat' | 'atom' | 'okxwallet.bitcoinT
 
 export type NetworkType = 'testnet' | 'testnet4' | 'livenet' | 'mainnet' | 'signet' | 'bitcoin';
 
-export interface IWalletProvider extends EventEmitter {
+export interface IWalletProvider {
   fetchAndValidateFile(url: string, filePath: string, expectSHA: string): Promise<string>;
 
   getProxy(): string | undefined;
@@ -35,12 +29,6 @@ export interface IWalletProvider extends EventEmitter {
 
   // Sign message
   signMessage(message: string, type?: string | SignMessageType): Promise<string>;
-
-  // Sign Psbt(hex)
-  signPsbt(psbtHex: string, options?: SignOptions): Promise<string>;
-
-  // Sign Psbts(hexs)
-  signPsbts(psbtHexs: string[], options?: SignOptions): Promise<string[]>;
 
   getAppVersion(): Promise<string>;
 
