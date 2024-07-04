@@ -12,7 +12,7 @@ use crate::{LABEL_ASSETS, LABEL_SIG, STATE};
 /// Retrieves a signed delegation for a user to authenticate further actions.
 ///
 /// # Arguments
-/// * `address` (String): The Ethereum address of the user.
+/// * `address` (String): The Bitcoin address of the user.
 /// * `session_key` (ByteBuf): A unique key that identifies the session.
 /// * `expiration` (u64): The expiration time of the delegation in nanoseconds since the UNIX epoch.
 ///
@@ -27,9 +27,9 @@ fn siwb_get_delegation(
 ) -> Result<SignedDelegation, String> {
     // Fetches the certificate for the current call, required for creating a certified signature.
     let certificate =
-        data_certificate().expect("siwe_get_delegation must be called using a query call");
+        data_certificate().expect("siwb_get_delegation must be called using a query call");
 
-    // Create an EthAddress from the string. This validates the address.
+    // Create an BtcAddress from the string. This validates the address.
     let AddressInfo {
         address_raw: address,
         ..
@@ -38,7 +38,7 @@ fn siwb_get_delegation(
     STATE.with(|s| {
         let signature_map = s.signature_map.borrow_mut();
 
-        // Generate a unique seed based on the user's Ethereum address.
+        // Generate a unique seed based on the user's Bitcoin address.
         let seed = generate_seed(&address);
 
         // Create a delegation object with the session key and expiration.

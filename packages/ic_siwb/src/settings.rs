@@ -4,7 +4,7 @@ use url::Url;
 
 const DEFAULT_SCHEME: &str = "https";
 const DEFAULT_STATEMENT: &str = "SIWB Fields:";
-// const DEFAULT_CHAIN_ID: u32 = 1; // Ethereum mainnet
+// const DEFAULT_CHAIN_ID: u32 = 1; // Bitcoin mainnet
 const DEFAULT_SIGN_IN_EXPIRES_IN: u64 = 60 * 5 * 1_000_000_000; // 5 minutes
 const DEFAULT_SESSION_EXPIRES_IN: u64 = 30 * 60 * 1_000_000_000; // 30 minutes
 
@@ -16,7 +16,7 @@ pub enum RuntimeFeature {
 
 /// Represents the settings for initializing SIWB.
 ///
-/// This struct is used to configure SIWB (Sign-In With Ethereum) functionality.
+/// This struct is used to configure SIWB (Sign-In With Bitcoin) functionality.
 /// It includes settings such as domain, scheme, statement, and expiration times for sessions and sign-ins.
 ///
 /// Use the [`SettingsBuilder`] to create a new instance of `Settings` to validate inputs and use default values.
@@ -38,7 +38,7 @@ pub struct Settings {
     // The scheme used to serve the frontend that uses SIWB. Defaults to "https".
     pub scheme: String,
 
-    /// The statement is a message or declaration, often presented to the user by the Ethereum wallet
+    /// The statement is a message or declaration, often presented to the user by the Bitcoin wallet
     pub statement: String,
 
     /// The TTL for a sign-in message in nanoseconds. After this time, the sign-in message will be pruned.
@@ -59,7 +59,7 @@ pub struct Settings {
 
 /// A builder for creating `Settings` instances.
 ///
-/// This builder provides a flexible way to configure and initialize the settings for SIWB (Sign-In With Ethereum).
+/// This builder provides a flexible way to configure and initialize the settings for SIWB (Sign-In With Bitcoin).
 /// It allows for setting various parameters like domain, URI, salt, and expiration times for sessions and sign-ins.
 ///
 /// # Examples
@@ -67,10 +67,10 @@ pub struct Settings {
 /// Basic usage:
 ///
 /// ```
-/// use ic_siwe::settings::{Settings, SettingsBuilder};
+/// use ic_siwb::settings::{Settings, SettingsBuilder};
 ///
 /// let builder = SettingsBuilder::new("example.com", "http://example.com", "some_salt")
-///     .chain_id(1)  // Ethereum mainnet
+///     .chain_id(1)  // Bitcoin mainnet
 ///     .scheme("https")
 ///     .statement("Sign in to access your account")
 ///     .sign_in_expires_in(300_000_000_000)  // 5 minutes in nanoseconds
@@ -114,7 +114,7 @@ impl SettingsBuilder {
         }
     }
 
-    /// Sets the Ethereum chain ID for ic-siwb.
+    /// Sets the Bitcoin network for ic-siwb.
     /// The `network` is used to specify the Bitcoin network.
     pub fn network(mut self, network: Network) -> Self {
         self.settings.network = network;
@@ -128,7 +128,7 @@ impl SettingsBuilder {
         self
     }
 
-    /// The `statement` is a message or declaration, often presented to the user by the Ethereum wallet
+    /// The `statement` is a message or declaration, often presented to the user by the Bitcoin wallet
     /// during the sign-in process. Defaults to "SIWB Fields:".
     pub fn statement<S: Into<String>>(mut self, statement: S) -> Self {
         self.settings.statement = statement.into();
@@ -156,7 +156,7 @@ impl SettingsBuilder {
         self
     }
 
-    /// Optional runtime features customize the behavior of ic-siwe.
+    /// Optional runtime features customize the behavior of ic-siwb.
     pub fn runtime_features(mut self, features: Vec<RuntimeFeature>) -> Self {
         self.settings.runtime_features = Some(features);
         self

@@ -5,10 +5,10 @@ use serde_bytes::ByteBuf;
 use crate::service::types::AddressScriptBuf;
 use crate::{ADDRESS_PRINCIPAL, SETTINGS};
 
-/// Retrieves the principal associated with the given Ethereum address.
+/// Retrieves the principal associated with the given Bitcoin address.
 ///
 /// # Arguments
-/// * `address` - The EIP-55-compliant Ethereum address.
+/// * `address` - The Bitcoin address.
 ///
 /// # Returns
 /// * `Ok(ByteBuf)` - The principal if found.
@@ -17,12 +17,12 @@ use crate::{ADDRESS_PRINCIPAL, SETTINGS};
 fn get_principal(address: String) -> Result<ByteBuf, String> {
     SETTINGS.with_borrow(|s| {
         if s.disable_btc_to_principal_mapping {
-            return Err("Ethereum address to principal mapping is disabled".to_string());
+            return Err("Bitcoin address to principal mapping is disabled".to_string());
         }
         Ok(())
     })?;
 
-    // Create an EthAddress from the string. This validates the address.
+    // Create an BtcAddress from the string. This validates the address.
     let AddressInfo { script_buf, .. } = get_script_from_address(address)?;
 
     ADDRESS_PRINCIPAL.with(|ap| {

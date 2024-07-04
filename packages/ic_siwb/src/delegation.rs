@@ -67,10 +67,10 @@ struct CertificateSignature<'a> {
     tree: HashTree<'a>,
 }
 
-/// Generates a unique seed for delegation, derived from the salt, Ethereum address, and SIWE message URI.
+/// Generates a unique seed for delegation, derived from the salt, Bitcoin address, and SIWB message URI.
 ///
 /// # Parameters
-/// * `address`: The Ethereum address as a string slice.
+/// * `address`: The Bitcoin address as a string slice.
 ///
 /// # Returns
 /// A `Hash` value representing the unique seed.

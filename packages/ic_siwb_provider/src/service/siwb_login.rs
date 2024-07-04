@@ -9,12 +9,12 @@ use serde_bytes::ByteBuf;
 use crate::service::types::AddressScriptBuf;
 use crate::{update_root_hash, ADDRESS_PRINCIPAL, PRINCIPAL_ADDRESS, SETTINGS, STATE};
 
-/// Authenticates the user by verifying the signature of the SIWE message. This function also
-/// prepares the delegation to be fetched in the next step, the `siwe_get_delegation` function.
+/// Authenticates the user by verifying the signature of the SIWB message. This function also
+/// prepares the delegation to be fetched in the next step, the `siwb_get_delegation` function.
 ///
 /// # Arguments
-/// * `signature` (String): The signature of the SIWE message.
-/// * `address` (String): The Ethereum address of the user.
+/// * `signature` (String): The signature of the SIWB message.
+/// * `address` (String): The Bitcoin address of the user.
 /// * `session_key` (ByteBuf): A unique key that identifies the session.
 ///
 /// # Returns
@@ -30,10 +30,10 @@ fn siwb_login(
     STATE.with(|state| {
         let signature_map = &mut *state.signature_map.borrow_mut();
 
-        // Create an EthAddress from the string. This validates the address.
+        // Create an BtcAddress from the string. This validates the address.
         let address = get_script_from_address(address)?;
 
-        // Create an EthSignature from the string. This validates the signature.
+        // Create an BtcSignature from the string. This validates the signature.
         let signature = BtcSignature(signature);
 
         // Attempt to log in with the provided signature, address, and session key.
@@ -57,7 +57,7 @@ fn siwb_login(
                 .try_into()
                 .map_err(|_| format!("Invalid principal: {:?}", login_response))?;
 
-        // Store the mapping of principal to Ethereum address and vice versa if the settings allow it.
+        // Store the mapping of principal to Bitcoin address and vice versa if the settings allow it.
         manage_principal_address_mappings(
             &principal,
             &AddressScriptBuf(address.script_buf.to_bytes()),

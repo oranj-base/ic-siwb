@@ -13,6 +13,8 @@ use ic_agent::{
     },
     Identity,
 };
+use ic_siwb::bitcoin::Network;
+use ic_siwb::bitcoin::Network::Bitcoin;
 use ic_siwb::{delegation::SignedDelegation, login::LoginDetails};
 use pocket_ic::{PocketIc, WasmResult};
 use rand::Rng;
@@ -34,7 +36,7 @@ pub struct SettingsInput {
     pub domain: String,
     pub uri: String,
     pub salt: String,
-    pub chain_id: Option<u32>,
+    pub network: Option<Network>,
     pub scheme: Option<String>,
     pub statement: Option<String>,
     pub sign_in_expires_in: Option<u64>,
@@ -65,7 +67,7 @@ pub fn valid_settings(canister_id: Principal, targets: Option<Vec<Principal>>) -
         domain: "127.0.0.1".to_string(),
         uri: "http://127.0.0.1:5173".to_string(),
         salt: "dummy-salt".to_string(),
-        chain_id: Some(10),
+        network: Some(Bitcoin),
         scheme: Some("http".to_string()),
         statement: Some("Login to the app".to_string()),
         sign_in_expires_in: Some(Duration::from_secs(3).as_nanos() as u64), // 3 seconds

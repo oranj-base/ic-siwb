@@ -12,7 +12,7 @@ import { callGetDelegation, callLogin, callPrepareLogin, createAnonymousActor } 
 import type { State } from './state.type';
 import { createDelegationChain } from './delegation';
 import { normalizeError } from './error';
-import { getRegisterExtension, type WalletProviderKey } from './hooks';
+import { getRegisterExtension, type WalletProviderKey } from './wallet';
 
 /**
  * Re-export types

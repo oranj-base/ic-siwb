@@ -2,7 +2,7 @@ import type { DelegationChain, DelegationIdentity } from '@dfinity/identity';
 
 import type { ActorSubclass } from '@dfinity/agent';
 import type { SIWB_IDENTITY_SERVICE } from './service.interface';
-import type { IWalletProvider, NetworkItem, WalletProviderKey } from './hooks';
+import type { IWalletProvider, NetworkItem, WalletProviderKey } from './wallet';
 
 export type PrepareLoginStatus = 'error' | 'preparing' | 'success' | 'idle';
 export type LoginStatus = 'error' | 'logging-in' | 'success' | 'idle';

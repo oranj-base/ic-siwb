@@ -1,18 +1,18 @@
 mod common;
 
+use crate::common::{prepare_login_and_sign_message, SettingsInput};
 use candid::{encode_args, encode_one, Principal};
 use common::{
     create_canister, create_session_identity, create_wallet, full_login, init, query, update,
     valid_settings, RuntimeFeature, SESSION_KEY, VALID_ADDRESS,
 };
 use ic_agent::Identity;
+use ic_siwb::bitcoin::Network::Bitcoin;
 use ic_siwb::{delegation::SignedDelegation, login::LoginDetails};
 use pocket_ic::PocketIc;
 use serde_bytes::ByteBuf;
 use siwe::Message;
 use std::time::Duration;
-
-use crate::common::{prepare_login_and_sign_message, SettingsInput};
 
 #[test]
 #[should_panic]
@@ -62,7 +62,7 @@ fn test_upgrade_with_changed_arguments() {
         domain: "192.168.0.1".to_string(),
         uri: "http://192.168.0.1:666".to_string(),
         salt: "another-salt".to_string(),
-        chain_id: Some(666),
+        network: Some(Bitcoin),
         scheme: Some("https".to_string()),
         statement: Some("Some login statement".to_string()),
         sign_in_expires_in: Some(Duration::from_secs(300).as_nanos() as u64), // 5 minutes
@@ -515,7 +515,7 @@ fn test_get_principal_not_found() {
     );
 }
 
-pub fn settings_disable_eth_and_principal_mapping(
+pub fn settings_disable_btc_and_principal_mapping(
     canister_id: Principal,
     targets: Option<Vec<Principal>>,
 ) -> SettingsInput {
@@ -533,7 +533,7 @@ pub fn settings_disable_eth_and_principal_mapping(
         domain: "127.0.0.1".to_string(),
         uri: "http://127.0.0.1:5173".to_string(),
         salt: "dummy-salt".to_string(),
-        chain_id: Some(10),
+        network: Some(Bitcoin),
         scheme: Some("http".to_string()),
         statement: Some("Login to the app".to_string()),
         sign_in_expires_in: Some(Duration::from_secs(3).as_nanos() as u64), // 3 seconds
@@ -546,12 +546,12 @@ pub fn settings_disable_eth_and_principal_mapping(
     }
 }
 
-pub fn init_disable_eth_and_principal_mapping(
+pub fn init_disable_btc_and_principal_mapping(
     ic: &PocketIc,
     targets: Option<Vec<Principal>>,
 ) -> (Principal, Option<Vec<Principal>>) {
     let (canister_id, wasm_module) = create_canister(ic);
-    let settings = settings_disable_eth_and_principal_mapping(canister_id, targets.clone());
+    let settings = settings_disable_btc_and_principal_mapping(canister_id, targets.clone());
     let arg = encode_one(settings).unwrap();
     let sender = None;
 
@@ -566,9 +566,9 @@ pub fn init_disable_eth_and_principal_mapping(
 }
 
 #[test]
-fn test_eth_to_principal_mapping_disabled() {
+fn test_btc_to_principal_mapping_disabled() {
     let ic = PocketIc::new();
-    let (ic_siwb_provider_canister, targets) = init_disable_eth_and_principal_mapping(&ic, None);
+    let (ic_siwb_provider_canister, targets) = init_disable_btc_and_principal_mapping(&ic, None);
     let (_, _) = full_login(&ic, ic_siwb_provider_canister, targets);
     let response: Result<ByteBuf, String> = query(
         &ic,
@@ -585,9 +585,9 @@ fn test_eth_to_principal_mapping_disabled() {
 }
 
 #[test]
-fn test_principal_to_eth_mapping_disabled() {
+fn test_principal_to_btc_mapping_disabled() {
     let ic = PocketIc::new();
-    let (ic_siwb_provider_canister, targets) = init_disable_eth_and_principal_mapping(&ic, None);
+    let (ic_siwb_provider_canister, targets) = init_disable_btc_and_principal_mapping(&ic, None);
     let (_, delegated_identity) = full_login(&ic, ic_siwb_provider_canister, targets);
     let response: Result<String, String> = query(
         &ic,

@@ -35,30 +35,29 @@ const MAGIC_BYTES: &str = "Bitcoin Signed Message:\n";
 
 pub struct BtcSignature(pub String);
 
-/// This function is the first step of the user login process. It validates the provided Ethereum address,
-/// creates a SIWE message, saves it for future use, and returns it.
+/// This function is the first step of the user login process. It validates the provided Bitcoin address,
+/// creates a SIWB message, saves it for future use, and returns it.
 ///
 /// # Parameters
-/// * `address`: A string slice (`&str`) representing the user's Ethereum address. This address is
-///   validated and used to create the SIWE message.
+/// * `address`: A string slice (`&str`) representing the user's Bitcoin address. This address is
+///   validated and used to create the SIWB message.
 ///
 /// # Returns
 /// A `Result` that, on success, contains the `SiwbMessage` for the user, or an error string on failure.
 ///
 /// # Example
 /// ```ignore
-/// use ic_siwe::{
+/// use ic_siwb::{
 ///   login::prepare_login,
-///   eth::EthAddress
 /// };
 ///
-/// let address = EthAddress::new("0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed").unwrap();
+/// let address = Address::from_str("bc1q....123").unwrap();
 /// let message = prepare_login(&address).unwrap();
 /// ```
 pub fn prepare_login(address: &Address) -> Result<SiwbMessage, BtcError> {
     let message = SiwbMessage::new(address);
 
-    // Save the SIWE message for use in the login call
+    // Save the SIWB message for use in the login call
     SIWB_MESSAGES.with_borrow_mut(|siwb_messages| {
         siwb_messages.insert(address.script_pubkey().to_bytes(), message.clone());
     });
@@ -121,12 +120,13 @@ impl fmt::Display for LoginError {
     }
 }
 
-/// Handles the second step of the user login process. It verifies the signature against the SIWE message,
+/// Handles the second step of the user login process. It verifies the signature against the SIWB message,
 /// creates a delegation for the session, adds it to the signature map, and returns login details
 ///
 /// # Parameters
-/// * `signature`: The SIWE message signature to verify.
-/// * `address`: The Ethereum address used to sign the SIWE message.
+/// * `signature`: The SIWB message signature to verify.
+/// * `address`: The Bitcoin address used to sign the SIWB message.
+/// * `public_key`: The ecdsa public key of wallet, can retrieve from wallet provider
 /// * `session_key`: A unique session key to be used for the delegation.
 /// * `signature_map`: A mutable reference to `SignatureMap` to which the delegation hash will be added
 ///   after successful validation.
@@ -143,19 +143,19 @@ pub fn login(
     signature_map: &mut SignatureMap,
     canister_id: &Principal,
 ) -> Result<LoginDetails, LoginError> {
-    // Remove expired SIWE messages from the state before proceeding. The init settings determines
-    // the time to live for SIWE messages.
+    // Remove expired SIWB messages from the state before proceeding. The init settings determines
+    // the time to live for SIWB messages.
     SIWB_MESSAGES.with_borrow_mut(|siwb_messages| {
-        // Prune any expired SIWE messages from the state.
+        // Prune any expired SIWB messages from the state.
         siwb_messages.prune_expired();
 
-        // Get the previously created SIWE message for current address. If it has expired or does not
+        // Get the previously created SIWB message for current address. If it has expired or does not
         // exist, return an error.
         let address_bytes = address.script_pubkey().to_bytes();
         let message = siwb_messages.get(&address_bytes)?;
         let message_string: String = message.clone().into();
 
-        // Verify the supplied signature against the SIWE message and recover the Ethereum address
+        // Verify the supplied signature against the SIWB message and recover the Bitcoin address
         // used to sign the message.
 
         let v = _verify_message(message_string, signature.0.clone(), public_key)
@@ -165,8 +165,8 @@ pub fn login(
             return Err(LoginError::AddressMismatch);
         }
 
-        // At this point, the signature has been verified and the SIWE message has been used. Remove
-        // the SIWE message from the state.
+        // At this point, the signature has been verified and the SIWB message has been used. Remove
+        // the SIWB message from the state.
         siwb_messages.remove(&address_bytes);
 
         // The delegation is valid for the duration of the session as defined in the settings.
@@ -177,7 +177,7 @@ pub fn login(
         });
 
         // The seed is what uniquely identifies the delegation. It is derived from the salt, the
-        // Ethereum address and the SIWE message URI.
+        // Bitcoin address and the SIWB message URI.
         let seed = generate_seed(address);
 
         // Before adding the signature to the signature map, prune any expired signatures.

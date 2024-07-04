@@ -1,6 +1,6 @@
 import { DelegationChain, DelegationIdentity } from '@dfinity/identity';
 import type { LoginStatus, PrepareLoginStatus } from './state.type';
-import type { NetworkItem, WalletProviderKey } from './hooks';
+import type { NetworkItem, WalletProviderKey } from './wallet';
 
 export type SiwbIdentityContextType = {
   /** Is set to `true` on mount until a stored identity is loaded from local storage or

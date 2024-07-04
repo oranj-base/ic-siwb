@@ -6,13 +6,13 @@ use serde_bytes::ByteBuf;
 
 use crate::{PRINCIPAL_ADDRESS, SETTINGS};
 
-/// Retrieves the Ethereum address associated with a given IC principal.
+/// Retrieves the Bitcoin address associated with a given IC principal.
 ///
 /// # Arguments
 /// * `principal` - A `ByteBuf` containing the principal's bytes, expected to be 29 bytes.
 ///
 /// # Returns
-/// * `Ok(String)` - The EIP-55-compliant Ethereum address if found.
+/// * `Ok(String)` - The EIP-55-compliant Bitcoin address if found.
 /// * `Err(String)` - An error message if the principal cannot be converted or no address is found.
 #[query]
 pub(crate) fn get_address(principal: ByteBuf, network: String) -> Result<String, String> {

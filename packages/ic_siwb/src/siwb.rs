@@ -29,18 +29,18 @@ impl From<SiwbMessageError> for String {
     }
 }
 
-/// Represents a SIWE (Sign-In With Ethereum) message.
+/// Represents a SIWB (Sign-In With Bitcoin) message.
 ///
 /// This struct and its implementation methods support all required fields in the [ERC-4361](https://eips.ethereum.org/EIPS/eip-4361)
 /// specification.
 ///
 /// # Examples
 ///
-/// The following is an example of a SIWE message formatted according to the [ERC-4361](https://eips.ethereum.org/EIPS/eip-4361) specification:
+/// The following is an example of a SIWB message formatted according to the [ERC-4361](https://eips.ethereum.org/EIPS/eip-4361) specification:
 ///
 /// ```text
-/// 127.0.0.1 wants you to sign in with your Ethereum account:
-/// 0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed
+/// 127.0.0.1 wants you to sign in with your Bitcoin account:
+/// bc1p....123
 ///
 /// Login to the app
 ///
@@ -66,12 +66,12 @@ pub struct SiwbMessage {
 }
 
 impl SiwbMessage {
-    /// Constructs a new `SiwbMessage` for a given Ethereum address using the settings defined in the
+    /// Constructs a new `SiwbMessage` for a given Bitcoin address using the settings defined in the
     /// global [`Settings`] struct.
     ///
     /// # Arguments
     ///
-    /// * `address`: The Ethereum address of the user.
+    /// * `address`: The Bitcoin address of the user.
     ///
     /// # Returns
     ///
@@ -95,7 +95,7 @@ impl SiwbMessage {
         })
     }
 
-    /// Checks if the SIWE message is currently valid.
+    /// Checks if the SIWB message is currently valid.
     ///
     /// # Returns
     ///
@@ -114,11 +114,11 @@ impl fmt::Display for SiwbMessage {
 }
 
 impl From<SiwbMessage> for String {
-    /// Converts the SIWE message to the [ERC-4361](https://eips.ethereum.org/EIPS/eip-4361) string format.
+    /// Converts the SIWB message to the [ERC-4361](https://eips.ethereum.org/EIPS/eip-4361) string format.
     ///
     /// # Returns
     ///
-    /// A string representation of the SIWE message in the ERC-4361 format.
+    /// A string representation of the SIWB message in the ERC-4361 format.
     fn from(val: SiwbMessage) -> Self {
         let issued_at_datetime =
             OffsetDateTime::from_unix_timestamp_nanos(val.issued_at as i128).unwrap();
@@ -149,9 +149,9 @@ impl From<SiwbMessage> for String {
     }
 }
 
-/// The SiwbMessageMap is a map of SIWE messages keyed by the Ethereum address of the user. SIWE messages
+/// The SiwbMessageMap is a map of SIWB messages keyed by the Bitcoin address of the user. SIWB messages
 /// are stored in the map during the course of the login process and are removed once the login process
-/// is complete. The map is also pruned periodically to remove expired SIWE messages.
+/// is complete. The map is also pruned periodically to remove expired SIWB messages.
 pub struct SiwbMessageMap {
     map: HashMap<Vec<u8>, SiwbMessage>,
 }
@@ -163,19 +163,19 @@ impl SiwbMessageMap {
         }
     }
 
-    /// Removes SIWE messages that have exceeded their time to live.
+    /// Removes SIWB messages that have exceeded their time to live.
     pub fn prune_expired(&mut self) {
         let current_time = get_current_time();
         self.map
             .retain(|_, message| message.expiration_time > current_time);
     }
 
-    /// Adds a SIWE message to the map.
+    /// Adds a SIWB message to the map.
     pub fn insert(&mut self, address_bytes: Vec<u8>, message: SiwbMessage) {
         self.map.insert(address_bytes, message);
     }
 
-    /// Returns a cloned SIWE message associated with the provided address or an error if the message
+    /// Returns a cloned SIWB message associated with the provided address or an error if the message
     /// does not exist.
     pub fn get(&self, address_bytes: &Vec<u8>) -> Result<SiwbMessage, SiwbMessageError> {
         self.map
@@ -184,7 +184,7 @@ impl SiwbMessageMap {
             .ok_or(SiwbMessageError::MessageNotFound)
     }
 
-    /// Removes the SIWE message associated with the provided address.
+    /// Removes the SIWB message associated with the provided address.
     pub fn remove(&mut self, address_bytes: &Vec<u8>) {
         self.map.remove(address_bytes);
     }
