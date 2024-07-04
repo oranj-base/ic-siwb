@@ -1,8 +1,7 @@
-import React from 'react';
 import icLogo from './assets/ic.svg';
 import btcLogo from './assets/btc.svg';
 import './App.css';
-import { useSiwbIdentity } from './siwb';
+import { useSiwbIdentity } from 'ic-use-siwb-identity';
 import { Button, Typography } from 'antd';
 
 // import { useSiwbIdentity } from 'ic-use-siwb-identity'

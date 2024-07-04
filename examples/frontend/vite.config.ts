@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react-swc';
+//import react from '@vitejs/plugin-react-swc';
+import react from '@vitejs/plugin-react';
 import wasm from 'vite-plugin-wasm';
+// import reactRefresh from '@vitejs/plugin-react-refresh';
 // import legacy from '@vitejs/plugin-legacy';
 import { createHtmlPlugin } from 'vite-plugin-html';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
@@ -16,9 +18,11 @@ export default defineConfig({
       supported: {
         bigint: true,
       },
+      jsx: 'automatic',
     },
   },
   plugins: [
+    // reactRefresh(),
     react(),
     wasm(),
 

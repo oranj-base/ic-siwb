@@ -1,14 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-refresh/only-export-components */
-// import React, { createContext, useContext, type ReactNode, useEffect, useState, useRef } from 'react';
+import { createContext, useContext, type ReactNode, useEffect, useState, useRef } from 'react';
 import { type ActorConfig, type HttpAgentOptions } from '@dfinity/agent';
 import { DelegationIdentity, Ed25519KeyIdentity } from '@dfinity/identity';
 import type { SiwbIdentityContextType } from './context.type';
-
-// change wagmi to wizzbtc
-// import { useAccount, useSignMessage } from 'wagmi';
-// import type { SignMessageErrorType } from 'wagmi/actions';
-// change wagmi to wizzbtc
 
 import { IDL } from '@dfinity/candid';
 import type { LoginOkResponse, SIWB_IDENTITY_SERVICE, SignedDelegation as ServiceSignedDelegation } from './service.interface';
@@ -18,7 +13,6 @@ import type { State } from './state.type';
 import { createDelegationChain } from './delegation';
 import { normalizeError } from './error';
 import { getRegisterExtension, type WalletProviderKey } from './hooks';
-import React, { createContext, useContext, type ReactNode, useState, useRef, useEffect } from 'react';
 
 /**
  * Re-export types
@@ -28,7 +22,7 @@ export * from './service.interface';
 export * from './storage.type';
 
 /**
- * React context for managing SIWB (Sign-In with Ethereum) identity.
+ * React context for managing SIWB (Sign-In with Bitcoin) identity.
  */
 export const SiwbIdentityContext = createContext<SiwbIdentityContextType | undefined>(undefined);
 
@@ -97,10 +91,6 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
   /** The child components that the SiwbIdentityProvider will wrap. This allows any child component to access the authentication context provided by the SiwbIdentityProvider. */
   children: ReactNode;
 }) {
-  // change wagmi to wizzbtc
-  // const { signMessage, status: signMessageStatus, reset, error: signMessageError } = useSignMessage();
-  // change wagmi to wizzbtc
-
   let signMessageStatus: 'error' | 'idle' | 'pending' | 'success' = 'idle';
   let signMessageError = null;
 

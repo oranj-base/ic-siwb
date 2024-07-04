@@ -1,7 +1,6 @@
-import React from 'react';
 import { useEffect, useState } from 'react';
 import { Button, Modal, Spin, Typography } from 'antd';
-import { useSiwbIdentity } from '../siwb';
+import { useSiwbIdentity } from 'ic-use-siwb-identity';
 
 export default function ConnectDialog({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (isOpen: boolean) => void }) {
   //   const { connect, connectors, error, isPending, variables, reset } = useConnect();

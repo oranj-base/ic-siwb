@@ -49,7 +49,7 @@ export async function callPrepareLogin(anonymousActor: ActorSubclass<SIWB_IDENTI
 }
 
 /**
- * Logs in the user by sending a signed SIWE message to the backend.
+ * Logs in the user by sending a signed SIWB message to the backend.
  */
 export async function callLogin(
   anonymousActor: ActorSubclass<SIWB_IDENTITY_SERVICE>,

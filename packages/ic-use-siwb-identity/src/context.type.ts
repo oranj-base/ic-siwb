@@ -66,7 +66,7 @@ export type SiwbIdentityContextType = {
    * or completing the login process. */
   identity?: DelegationIdentity;
 
-  /** The Ethereum address associated with current identity. This address is not necessarily
+  /** The Bitcoin address associated with current identity. This address is not necessarily
    * the same as the address of the currently connected wallet - on wallet change, the addresses
    * will differ. */
   identityAddress?: string;
@@ -74,13 +74,19 @@ export type SiwbIdentityContextType = {
   /** Clears the identity from the state and local storage. Effectively "logs the user out". */
   clear: () => void;
 
+  /** Network Identitfier, not adding bitcoinjs-lib network directly, simple string */
+
   network?: NetworkItem;
 
+  /** We don't have things like rainbow kit right now, so we have to manually set provider key */
   setWalletProvider: (providerKey: WalletProviderKey) => Promise<void>;
 
+  /** We don't have things like rainbow kit right now, so we have to manually return provider key */
   selectedProvider?: WalletProviderKey;
 
+  /** We don't have things like rainbow kit right now, so we have to manually return btc address */
   connectedBtcAddress?: string;
 
+  /** We don't have things like rainbow kit right now, so we have to manually return btc address */
   getAddress: () => string | undefined;
 };

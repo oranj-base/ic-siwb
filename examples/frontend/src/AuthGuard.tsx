@@ -2,7 +2,7 @@
 import React from 'react';
 
 import LoginPage from './components/login/LoginPage';
-import { useSiwbIdentity } from './siwb';
+import { useSiwbIdentity } from 'ic-use-siwb-identity';
 
 type AuthGuardProps = {
   children: React.ReactNode;

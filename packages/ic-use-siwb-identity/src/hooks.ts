@@ -1,13 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// import type { IWalletProvider } from '@wizz-btc/provider';
-// import type { SignMessageType } from '@wizz-btc/provider';
-// import {
-//   // AddressType,
-//   // bitcoin,
-//   //detectAddressTypeToScripthash, getAddressType,
-//   type SignOptions,
-// } from '@wizz-btc/wallet';
-
 export type SignMessageType = 'ecdsa' | 'bip322-simple';
 
 export type WalletProviderKey = 'wizz' | 'unisat' | 'atom' | 'okxwallet.bitcoinTestnet' | 'okxwallet.bitcoin' | 'okxwallet.bitcoinSignet';
@@ -77,14 +68,6 @@ export const NETWORKS: { [key: string]: NetworkItem } = {
   },
 };
 
-// export const useAddress = () => {
-//   return useSelector((state: RootState) => state.global?.address);
-// };
-
-// export const useProviderKey = () => {
-//   return useSelector((state: RootState) => state.global?.providerKey);
-// };
-
 export function getPropByKey(obj: any, key: string) {
   const keys = key.split('.');
   let result = obj;
@@ -101,19 +84,6 @@ export const getWalletProvider = (key: WalletProviderKey) => {
   console.log({ provider, key });
   if (provider) return provider as IWalletProvider;
 };
-
-// export const useNetworkType = (): NetworkType => {
-//   const network = useSelector((state: RootState) => state.global?.network);
-//   return network || 'livenet';
-// };
-
-// export function useNetwork() {
-//   const networkType = useNetworkType();
-//   if (networkType === 'mainnet' || networkType === 'livenet' || !networkType) {
-//     return NETWORKS.mainnet;
-//   }
-//   return NETWORKS[networkType];
-// }
 
 export function isPageHidden() {
   const doc = document as any;
