@@ -44,6 +44,10 @@ export const idlFactory = ({ IDL }: any) => {
   });
   const SiwbSignature = IDL.Text;
   const PublickeyHex = IDL.Text;
+  const SignMessageType = IDL.Variant({
+    Bip322Simple: IDL.Null,
+    ECDSA: IDL.Null,
+  });
   const CanisterPublicKey = PublicKey;
   const LoginDetails = IDL.Record({
     user_canister_pubkey: CanisterPublicKey,
@@ -60,7 +64,7 @@ export const idlFactory = ({ IDL }: any) => {
     get_caller_address: IDL.Func([IDL.Opt(String)], [GetAddressResponse], ['query']),
     get_principal: IDL.Func([Address], [GetPrincipalResponse], ['query']),
     siwb_get_delegation: IDL.Func([Address, SessionKey, Timestamp], [GetDelegationResponse], ['query']),
-    siwb_login: IDL.Func([SiwbSignature, Address, PublickeyHex, SessionKey], [LoginResponse], []),
+    siwb_login: IDL.Func([SiwbSignature, Address, PublickeyHex, SessionKey, SignMessageType], [LoginResponse], []),
     siwb_prepare_login: IDL.Func([Address], [PrepareLoginResponse], []),
   });
 };

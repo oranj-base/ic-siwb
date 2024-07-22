@@ -15,6 +15,11 @@ type RuntimeFeature = variant {
   DisablePrincipalToEthMapping 
 };
 
+type SignMessageType = variant {
+  ECDSA;
+  Bip322Simple
+};
+
 type SettingsInput = record {
   domain : text;
   uri : text;
@@ -74,6 +79,6 @@ service : (settings_input : SettingsInput) -> {
   "get_caller_address" : (opt String) -> (GetAddressResponse) query;
   "get_principal" : (Address) -> (GetPrincipalResponse) query;
   "siwb_prepare_login" : (Address) -> (PrepareLoginResponse);
-  "siwb_login" : (SiwbSignature, Address, PublickeyHex, SessionKey) -> (LoginResponse);
+  "siwb_login" : (SiwbSignature, Address, PublickeyHex, SessionKey, SignMessageType) -> (LoginResponse);
   "siwb_get_delegation" : (Address, SessionKey, Timestamp) -> (GetDelegationResponse) query;
 };

@@ -1,7 +1,7 @@
 use candid::Principal;
 use ic_cdk::update;
 
-use ic_siwb::login::{BtcSignature, LoginDetails};
+use ic_siwb::login::{BtcSignature, LoginDetails, SignMessageType};
 use ic_siwb::utils::get_script_from_address;
 use ic_stable_structures::storable::Blob;
 use serde_bytes::ByteBuf;
@@ -26,6 +26,7 @@ fn siwb_login(
     address: String,
     public_key: String,
     session_key: ByteBuf,
+    sign_message_type: SignMessageType,
 ) -> Result<LoginDetails, String> {
     STATE.with(|state| {
         let signature_map = &mut *state.signature_map.borrow_mut();
@@ -45,6 +46,7 @@ fn siwb_login(
             session_key,
             &mut *signature_map,
             &ic_cdk::api::id(),
+            sign_message_type,
         )
         .map_err(|e| e.to_string())?;
 

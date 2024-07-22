@@ -1,22 +1,36 @@
-use base64::engine::general_purpose;
-use base64::Engine;
-use bitcoin::key::XOnlyPublicKey;
-use bitcoin::secp256k1::Secp256k1;
-use bitcoin::Network::{Bitcoin, Testnet};
-use bitcoin::{Address, AddressType, PublicKey as BitcoinPublicKey};
+use std::collections::BTreeMap;
 use std::fmt;
 use std::mem::size_of;
+use std::str::FromStr;
 
+use base64::engine::general_purpose;
+use base64::Engine;
+use bitcoin::absolute::LockTime;
+use bitcoin::hashes::Hash;
+use bitcoin::key::XOnlyPublicKey;
+use bitcoin::psbt::{Prevouts, Psbt};
+use bitcoin::script::Builder;
+use bitcoin::script::Instruction::PushBytes;
+use bitcoin::secp256k1::{Message, Secp256k1, ThirtyTwoByteHash};
+use bitcoin::sighash::{EcdsaSighashType, SighashCache, TapSighashType};
+use bitcoin::Network::{Bitcoin, Testnet};
+use bitcoin::{
+    secp256k1, Address, AddressType, Network, OutPoint, PublicKey as BitcoinPublicKey, Script,
+    ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid, Witness,
+};
 use byteorder::{ByteOrder, LittleEndian};
-use candid::{CandidType, Principal};
+use candid::{CandidType, Deserialize, Principal};
 use k256::ecdsa::{RecoveryId, Signature, VerifyingKey};
 use k256::sha2::digest::FixedOutput;
 use k256::sha2::{Digest, Sha256};
-use serde::Deserialize;
+use serde::Serialize;
 use serde_bytes::ByteBuf;
 use simple_asn1::ASN1EncodeErr;
 
 use crate::error::BtcError;
+use crate::error::BtcError::AddressTypeNotSupported;
+use crate::hash::hash_bytes;
+use crate::utils::{get_script_from_address, AddressInfo};
 use crate::{
     delegation::{
         create_delegation, create_delegation_hash, create_user_canister_pubkey, generate_seed,
@@ -32,6 +46,12 @@ use crate::{
 
 const MAX_SIGS_TO_PRUNE: usize = 10;
 const MAGIC_BYTES: &str = "Bitcoin Signed Message:\n";
+
+#[derive(CandidType, Clone, Serialize, Deserialize)]
+pub enum SignMessageType {
+    ECDSA,
+    Bip322Simple,
+}
 
 pub struct BtcSignature(pub String);
 
@@ -142,6 +162,7 @@ pub fn login(
     session_key: ByteBuf,
     signature_map: &mut SignatureMap,
     canister_id: &Principal,
+    sign_message_type: SignMessageType,
 ) -> Result<LoginDetails, LoginError> {
     // Remove expired SIWB messages from the state before proceeding. The init settings determines
     // the time to live for SIWB messages.
@@ -158,11 +179,46 @@ pub fn login(
         // Verify the supplied signature against the SIWB message and recover the Bitcoin address
         // used to sign the message.
 
-        let v = _verify_message(message_string, signature.0.clone(), public_key)
-            .map_err(|_| LoginError::AddressMismatch)?;
+        match sign_message_type {
+            SignMessageType::ECDSA => {
+                let v = _verify_message(message_string, signature.0.clone(), public_key)
+                    .map_err(|_| LoginError::AddressMismatch)?;
 
-        if verify_address(address.to_string().as_str(), v).is_err() {
-            return Err(LoginError::AddressMismatch);
+                if verify_address(address.to_string().as_str(), v).is_err() {
+                    return Err(LoginError::AddressMismatch);
+                }
+            }
+            SignMessageType::Bip322Simple => {
+                let AddressInfo {
+                    network,
+                    address_type,
+                    ..
+                } = match get_script_from_address(address.to_string()) {
+                    Ok(a) => a,
+                    Err(_) => return Err(LoginError::AddressMismatch),
+                };
+                if address_type == AddressType::P2tr {
+                    if !verify_signature_of_bip322_simple_p2tr(
+                        address.to_string().as_str(),
+                        message_string.as_str(),
+                        signature.0.as_str(),
+                        network,
+                    ) {
+                        return Err(LoginError::AddressMismatch);
+                    }
+                } else if address_type == AddressType::P2wpkh {
+                    if !verify_signature_of_bip322_simple_segwitv0(
+                        address.to_string().as_str(),
+                        message_string.as_str(),
+                        signature.0.as_str(),
+                        network,
+                    ) {
+                        return Err(LoginError::AddressMismatch);
+                    }
+                } else {
+                    return Err(LoginError::BtcError(AddressTypeNotSupported));
+                }
+            }
         }
 
         // At this point, the signature has been verified and the SIWB message has been used. Remove
@@ -398,9 +454,225 @@ pub fn verify_address(address: &str, pub_bytes: Vec<u8>) -> Result<String, Strin
     }
 }
 
+fn get_output_script_from_address(address: &str, network: Network) -> ScriptBuf {
+    let _address = Address::from_str(address).unwrap();
+    _address.require_network(network).unwrap().script_pubkey()
+}
+
+fn bip0322_hash(message: &str) -> Vec<u8> {
+    let tag = "BIP0322-signed-message";
+    let tag_hash = hash_bytes(tag.as_bytes());
+    let mut hasher = Sha256::new();
+    hasher.update(&tag_hash);
+    hasher.update(&tag_hash);
+    hasher.update(message.as_bytes());
+    hasher.finalize().to_vec()
+}
+
+fn bip0322_tx(message_slice: &[u8], output_script: ScriptBuf) -> Transaction {
+    // Prepare the transaction to spend
+    let prevout_hash = vec![0u8; 32];
+    let prevout_index = 0xffffffff;
+    let sequence = Sequence(0);
+    let mut slice = vec![];
+    slice.extend_from_slice(&[0x00, 0x20]);
+    slice.extend_from_slice(message_slice);
+
+    let script_sig = ScriptBuf::from_bytes(slice);
+
+    let tx_to_spend = Transaction {
+        version: 0,
+        lock_time: LockTime::ZERO,
+        input: vec![TxIn {
+            previous_output: OutPoint {
+                txid: Txid::from_slice(prevout_hash.as_slice()).unwrap(),
+                vout: prevout_index,
+            },
+            script_sig: script_sig.clone(),
+            sequence,
+            witness: Witness::default(),
+        }],
+        output: vec![TxOut {
+            value: 0,
+            script_pubkey: output_script.clone(),
+        }],
+    };
+    let tx_unsigned = bip0322_psbt_unsigned(tx_to_spend);
+    tx_unsigned
+}
+
+fn bip0322_psbt_unsigned(tx_to_spend: Transaction) -> Transaction {
+    Transaction {
+        version: 0,
+        lock_time: LockTime::from_height(0u32).unwrap(),
+        input: vec![TxIn {
+            previous_output: OutPoint {
+                txid: tx_to_spend.txid(), //Txid::from_slice(tx_bytes.as_slice()).unwrap(),
+                vout: 0,
+            },
+            script_sig: Default::default(),
+            sequence: Sequence::ZERO,
+            witness: Witness::default(), //Witness::from(vec![data]),
+        }],
+        output: vec![TxOut {
+            value: 0,
+            script_pubkey: Builder::new()
+                .push_opcode(bitcoin::blockdata::opcodes::all::OP_RETURN)
+                .into_script(),
+        }],
+    }
+}
+
+fn verify_signature_of_bip322_simple_p2tr(
+    address: &str,
+    msg: &str,
+    sig: &str,
+    network: Network,
+) -> bool {
+    let secp = Secp256k1::new();
+    let output_script = get_output_script_from_address(address.to_string().as_str(), network);
+    let _tx = bip0322_tx(bip0322_hash(msg).as_slice(), output_script.clone());
+
+    // Decode the signature
+    let data = match general_purpose::STANDARD.decode(sig) {
+        Ok(d) => d,
+        Err(_) => return false,
+    };
+
+    let script_buf = ScriptBuf::from_bytes(data[1..].to_vec());
+
+    let signature = match secp256k1::schnorr::Signature::from_slice(&script_buf.to_bytes()[1..]) {
+        Ok(sig) => sig,
+        Err(_) => return false,
+    };
+
+    let mut b = vec![];
+    b.extend_from_slice(&output_script.to_bytes()[2..]);
+
+    // Extract the public key from the address
+    let pubkey = match XOnlyPublicKey::from_slice(b.as_slice()) {
+        Ok(key) => key,
+        Err(_) => return false,
+    };
+
+    // Prepare the PSBT to sign
+    let mut psbt_to_sign = match Psbt::from_unsigned_tx(_tx) {
+        Ok(psbt) => psbt,
+        Err(_) => return false,
+    };
+    psbt_to_sign.version = 0;
+    psbt_to_sign.inputs[0].tap_internal_key = Some(pubkey);
+    let binding = [TxOut {
+        value: 0,
+        script_pubkey: output_script.clone(),
+    }];
+    let prevouts_all = Prevouts::All(&binding);
+
+    let mut cache = SighashCache::new(&mut psbt_to_sign.unsigned_tx);
+    let sighash = cache.taproot_key_spend_signature_hash(0, &prevouts_all, TapSighashType::Default);
+    match sighash {
+        Ok(sighash) => {
+            let message = match Message::from_slice(&sighash.into_32()) {
+                Ok(m) => m,
+                Err(_) => return false,
+            };
+            secp.verify_schnorr(&signature, &message, &pubkey).is_ok()
+        }
+        Err(_) => false,
+    }
+}
+
+fn verify_signature_of_bip322_simple_segwitv0(
+    address: &str,
+    msg: &str,
+    sig: &str,
+    network: Network,
+) -> bool {
+    let secp = Secp256k1::new();
+    let output_script = get_output_script_from_address(address.to_string().as_str(), network);
+    let _tx = bip0322_tx(bip0322_hash(msg).as_slice(), output_script.clone());
+
+    // process signature, create partial_sig for segwit_v0
+    let _data = match general_purpose::STANDARD.decode(sig) {
+        Ok(data) => data,
+        Err(_) => return false,
+    };
+
+    let script_buf = ScriptBuf::from_bytes(_data[1..].to_vec());
+
+    let _res = match extract_bytes_from_script(&script_buf, 2) {
+        Ok(d) => d.clone(),
+        Err(_) => return false,
+    };
+    let sig = match bitcoin::ecdsa::Signature::from_slice(&_res[0]) {
+        Ok(sig) => sig,
+        Err(_) => return false,
+    };
+    let pubkey = match bitcoin::key::PublicKey::from_slice(&_res[1]) {
+        Ok(key) => key,
+        Err(_) => return false,
+    };
+    let mut partial_sig = BTreeMap::new();
+    partial_sig.insert(pubkey, sig);
+
+    // Prepare the PSBT to sign
+    let mut psbt_to_sign = match Psbt::from_unsigned_tx(_tx) {
+        Ok(psbt) => psbt,
+        Err(_) => return false,
+    };
+    psbt_to_sign.version = 0;
+    psbt_to_sign.inputs[0].partial_sigs = partial_sig;
+    psbt_to_sign.inputs[0].witness_utxo = Some(TxOut {
+        value: 0,
+        script_pubkey: output_script.clone(),
+    });
+
+    // verify every partial sigs to each input
+    let ret = psbt_to_sign.inputs.iter().enumerate().all(|(i, input)| {
+        input.partial_sigs.iter().all(|(pubkey, signature)| {
+            let mut cache = SighashCache::new(&mut psbt_to_sign.unsigned_tx);
+            match output_script.p2wpkh_script_code() {
+                Some(code) => match cache.segwit_signature_hash(i, &code, 0, EcdsaSighashType::All)
+                {
+                    Ok(sighash) => Message::from_slice(&sighash.into_32())
+                        .map(|message| {
+                            secp.verify_ecdsa(&message, &signature.sig, &pubkey.inner)
+                                .is_ok()
+                        })
+                        .unwrap_or(true),
+                    Err(_) => false,
+                },
+                None => false,
+            }
+        })
+    });
+
+    return ret;
+}
+
+fn extract_bytes_from_script(script: &Script, expect_size: usize) -> Result<Vec<Vec<u8>>, String> {
+    if script.instructions().count() != expect_size {
+        return Err("Invalid script size".to_string());
+    }
+    let mut payload = vec![];
+    let instructions = script.instructions().peekable();
+    instructions
+        .into_iter()
+        .for_each(|instruction| match instruction {
+            Ok(PushBytes(bytes)) => payload.push(bytes.as_bytes().to_vec()),
+            _ => {
+                println!("instruction is {:?}", instruction);
+            }
+        });
+    Ok(payload)
+}
+
 #[cfg(test)]
 mod test {
-    use crate::login::{_verify_message, verify_address};
+    use crate::login::{
+        _verify_message, bip0322_hash, verify_address, verify_signature_of_bip322_simple_p2tr,
+        verify_signature_of_bip322_simple_segwitv0,
+    };
 
     #[test]
     fn test_get_address() {
@@ -492,5 +764,46 @@ mod test {
 
         let v2 = verify_address(a.as_str(), v.unwrap());
         println!("v2 is {:?}", v2);
+    }
+
+    #[test]
+    fn test_bip322_messasge() {
+        let m = "hello".to_string();
+        let h = bip0322_hash(m.as_str());
+        println!("hash is {:?}", hex::encode(h.clone()));
+        assert_eq!(
+            hex::encode(h.clone()),
+            "528e990bccf82644773d67eff12fb504e84b42c8396475da8c939404f4a32385".to_string()
+        );
+    }
+
+    #[test]
+    fn test_bip322_verify_p2tr() {
+        let m = "hello".to_string();
+        let a = "tb1phy4ay0kvcnelc9trqzk4ksld3qx45gm83274qxp204vzycg7hxaq2m2nrn".to_string();
+        let s = "AUBNN/m5COckJE1nj5bR9iAO+Ga5VlJU2xIIGBraFZQNDUtOO0J0tOhoQzvk0o+YwknQ3OGWyWR5VwiG2KzJwjUV".to_string();
+
+        let v = verify_signature_of_bip322_simple_p2tr(
+            a.as_str(),
+            m.as_str(),
+            s.as_str(),
+            bitcoin::Network::Testnet,
+        );
+        assert_eq!(v, true)
+    }
+
+    #[test]
+    fn test_bip322_verify_p2pkwh() {
+        let m = "hello".to_string();
+        let a = "tb1qf620ch70a2evf2n2jrmdk85wwpupx8qcszr2s7".to_string();
+        let s = "AkgwRQIhAOh1XvCVjPhJbc6oELxiRjjavkOW9ebYC5gzepzjWhn0AiAPpoXFwjozO82PYiSGlnc9RoM9JknaFt5OhmrGD/J58AEhA89jkK3c5cXYcnPiBLRTC27FwKz4mzOrZ+rizCQnR/jj".to_string();
+
+        let v = verify_signature_of_bip322_simple_segwitv0(
+            a.as_str(),
+            m.as_str(),
+            s.as_str(),
+            bitcoin::Network::Testnet,
+        );
+        assert_eq!(v, true);
     }
 }

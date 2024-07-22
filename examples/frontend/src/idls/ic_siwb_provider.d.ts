@@ -36,6 +36,7 @@ export interface SettingsInput {
   targets: [] | [Array<string>];
   sign_in_expires_in: [] | [bigint];
 }
+export type SignMessageType = { Bip322Simple: null } | { ECDSA: null };
 export interface SignedDelegation {
   signature: Uint8Array | number[];
   delegation: Delegation;
@@ -49,7 +50,7 @@ export interface _SERVICE {
   get_caller_address: ActorMethod<[[] | [String]], GetAddressResponse>;
   get_principal: ActorMethod<[Address], GetPrincipalResponse>;
   siwb_get_delegation: ActorMethod<[Address, SessionKey, Timestamp], GetDelegationResponse>;
-  siwb_login: ActorMethod<[SiwbSignature, Address, PublickeyHex, SessionKey], LoginResponse>;
+  siwb_login: ActorMethod<[SiwbSignature, Address, PublickeyHex, SessionKey, SignMessageType], LoginResponse>;
   siwb_prepare_login: ActorMethod<[Address], PrepareLoginResponse>;
 }
 export declare const idlFactory: IDL.InterfaceFactory;

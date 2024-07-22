@@ -6,13 +6,13 @@ import { DelegationIdentity, Ed25519KeyIdentity } from '@dfinity/identity';
 import type { SiwbIdentityContextType } from './context.type';
 
 import { IDL } from '@dfinity/candid';
-import type { LoginOkResponse, SIWB_IDENTITY_SERVICE, SignedDelegation as ServiceSignedDelegation } from './service.interface';
+import type { LoginOkResponse, SIWB_IDENTITY_SERVICE, SignedDelegation as ServiceSignedDelegation, SignMessageType } from './service.interface';
 import { clearIdentity, loadIdentity, saveIdentity } from './local-storage';
 import { callGetDelegation, callLogin, callPrepareLogin, createAnonymousActor } from './siwb-provider';
 import type { State } from './state.type';
 import { createDelegationChain } from './delegation';
 import { normalizeError } from './error';
-import { getRegisterExtension, type WalletProviderKey } from './wallet';
+import { AddressType, getAddressType, getRegisterExtension, type WalletProviderKey } from './wallet';
 
 /**
  * Re-export types
@@ -178,7 +178,12 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
    * This function is called when the signMessage hook has settled, that is, when the
    * user has signed the message or canceled the signing process.
    */
-  async function onLoginSignatureSettled(loginSignature: string | undefined, publickeyHex: string, error: Error | null) {
+  async function onLoginSignatureSettled(
+    loginSignature: string | undefined,
+    publickeyHex: string,
+    signMessageType: SignMessageType,
+    error: Error | null,
+  ) {
     if (error) {
       rejectLoginWithError(error, 'An error occurred while signing the login message.');
       return;
@@ -202,7 +207,14 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
 
     let loginOkResponse: LoginOkResponse;
     try {
-      loginOkResponse = await callLogin(state.anonymousActor, loginSignature, state.connectedBtcAddress, publickeyHex, sessionPublicKey);
+      loginOkResponse = await callLogin(
+        state.anonymousActor,
+        loginSignature,
+        state.connectedBtcAddress,
+        publickeyHex,
+        sessionPublicKey,
+        signMessageType,
+      );
     } catch (e) {
       rejectLoginWithError(e, 'Unable to login.');
       return;
@@ -285,7 +297,23 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
 
       if (state.provider !== undefined) {
         signMessageStatus = 'pending';
+        let signMessageType;
+        if (state.selectedProvider === 'BitcoinProvider' || state.selectedProvider === 'xverse') {
+          const [addressType, _] = getAddressType(state.connectedBtcAddress);
+          if (addressType === AddressType.P2TR || addressType === AddressType.P2WPKH) {
+            signMessageType = { Bip322Simple: null };
+          } else {
+            signMessageType = { ECDSA: null };
+          }
+        } else {
+          signMessageType = { ECDSA: null };
+        }
+        console.log({ signMessageType: JSON.stringify(signMessageType) });
         const signature = await state.provider.signMessage(siwbMessage as string);
+        updateState({
+          signMessageType,
+        });
+
         signMessageStatus = 'success';
         if (signature === undefined) {
           signMessageStatus = 'error';
@@ -294,7 +322,7 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
           return promise;
         }
         const pubKey = await state.provider.getPublicKey();
-        onLoginSignatureSettled(signature, pubKey, null);
+        onLoginSignatureSettled(signature, pubKey, signMessageType, null);
       }
 
       // signMessage(
@@ -327,6 +355,7 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
       identityAddress: undefined,
       delegationChain: undefined,
       connectedBtcAddress: undefined,
+      signMessageType: undefined,
     });
     clearIdentity();
   }

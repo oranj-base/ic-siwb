@@ -15,7 +15,9 @@ export default function ConnectDialog({ isOpen, setIsOpen }: { isOpen: boolean; 
    */
   useEffect(() => {
     if (!isPrepareLoginIdle) return;
-    if (getAddress()) {
+    const address = getAddress();
+    console.log({ address });
+    if (address) {
       prepareLogin();
       if (connectedBtcAddress && !identity && manually) {
         (async () => {
@@ -75,6 +77,17 @@ export default function ConnectDialog({ isOpen, setIsOpen }: { isOpen: boolean; 
           block
         >
           Unisat Wallet
+        </Button>
+        <Button
+          key="xverse"
+          onClick={async () => {
+            setManually(true);
+            await setWalletProvider('BitcoinProvider');
+          }}
+          disabled={loading}
+          block
+        >
+          Xverse Wallet
         </Button>
       </div>
       {loading && <Spin fullscreen />}

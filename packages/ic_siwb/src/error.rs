@@ -2,6 +2,7 @@ use std::fmt;
 
 #[derive(Debug)]
 pub enum BtcError {
+    AddressTypeNotSupported,
     AddressFormatError(String),
     DecodingError(hex::FromHexError),
     SignatureFormatError(String),
@@ -26,6 +27,9 @@ impl fmt::Display for BtcError {
             BtcError::InvalidRecoveryId => write!(f, "Invalid recovery ID"),
             BtcError::PublicKeyRecoveryFailure => {
                 write!(f, "Public key recovery failure")
+            }
+            BtcError::AddressTypeNotSupported => {
+                write!(f, "Address type not supported")
             }
         }
     }

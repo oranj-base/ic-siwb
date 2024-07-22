@@ -21,6 +21,7 @@
     "ic-use-siwb-identity": "file:///../../packages/ic-use-siwb-identity",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "sats-connect": "^2.5.0",
     "vite-plugin-html": "^3.2.2",
     "vite-plugin-node-polyfills": "^0.22.0",
     "vite-plugin-wasm": "^3.3.0"

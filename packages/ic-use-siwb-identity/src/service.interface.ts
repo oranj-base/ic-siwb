@@ -32,6 +32,8 @@ export interface SignedDelegation {
   delegation: Delegation;
 }
 
+export type SignMessageType = { Bip322Simple: null } | { ECDSA: null };
+
 export type SiwbMessage = string;
 
 export type SiwbSignature = string;
@@ -40,6 +42,6 @@ export type Timestamp = bigint;
 
 export interface SIWB_IDENTITY_SERVICE {
   siwb_prepare_login: ActorMethod<[Address], PrepareLoginResponse>;
-  siwb_login: ActorMethod<[SiwbSignature, Address, PublickeyHex, SessionKey], LoginResponse>;
+  siwb_login: ActorMethod<[SiwbSignature, Address, PublickeyHex, SessionKey, SignMessageType], LoginResponse>;
   siwb_get_delegation: ActorMethod<[Address, SessionKey, Timestamp], GetDelegationResponse>;
 }

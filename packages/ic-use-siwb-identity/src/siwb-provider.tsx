@@ -1,6 +1,6 @@
 import { HttpAgent, type ActorConfig, type HttpAgentOptions, Actor, type DerEncodedPublicKey, type ActorSubclass } from '@dfinity/agent';
 import type { IDL } from '@dfinity/candid';
-import type { SIWB_IDENTITY_SERVICE } from './service.interface';
+import type { SignMessageType, SIWB_IDENTITY_SERVICE } from './service.interface';
 
 /**
  * Creates an anonymous actor for interactions with the Internet Computer.
@@ -57,12 +57,14 @@ export async function callLogin(
   address: string | undefined,
   publickeyHex: string | undefined,
   sessionPublicKey: DerEncodedPublicKey,
+  signMessageType: SignMessageType | undefined,
 ) {
-  if (!anonymousActor || !data || !address || !publickeyHex) {
-    throw new Error('Invalid actor, data or address');
+  console.log({ signMessageType });
+  if (!anonymousActor || !data || !address || !publickeyHex || !signMessageType) {
+    throw new Error('Invalid actor, data , address or signMessageType');
   }
 
-  const loginReponse = await anonymousActor.siwb_login(data, address, publickeyHex, new Uint8Array(sessionPublicKey));
+  const loginReponse = await anonymousActor.siwb_login(data, address, publickeyHex, new Uint8Array(sessionPublicKey), signMessageType);
 
   if ('Err' in loginReponse) {
     throw new Error(loginReponse.Err);
