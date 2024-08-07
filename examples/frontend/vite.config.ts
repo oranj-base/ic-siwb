@@ -48,5 +48,6 @@ export default defineConfig({
   ],
   define: {
     'process.env.DFX_NETWORK': JSON.stringify(process.env.DFX_NETWORK),
+    'process.env.PROVIDER': JSON.stringify(process.env.PROVIDER),
   },
 });

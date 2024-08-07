@@ -10,9 +10,9 @@ import { SiwbIdentityProvider } from 'ic-use-siwb-identity';
 ReactDOM.createRoot(document.getElementById('root')!).render(
   //<React.StrictMode>
   <SiwbIdentityProvider<siwbService>
-    canisterId="br5f7-7uaaa-aaaaa-qaaca-cai"
+    canisterId={process.env.PROVIDER!}
     idlFactory={siwbIdl}
-    httpAgentOptions={{ host: 'http://127.0.0.1:8080' }}
+    httpAgentOptions={{ host: process.env.DFX_NETWORK === 'ic' ? 'https://icp0.io' : 'http://127.0.0.1:8080' }} // use only in local canister
   >
     <AuthGuard>
       <App />
