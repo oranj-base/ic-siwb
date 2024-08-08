@@ -47,3 +47,5 @@ lerna-debug.log*
 
 # Test tools
 pocket-ic
+
+production.sh
