@@ -7,6 +7,7 @@
     "dev": "vite",
     "testnet": "cross-env DFX_NETWORK=ic PROVIDER=mwm4a-eiaaa-aaaah-aebnq-cai vite",
     "build": "tsc -b && vite build",
+    "deploy": "vite build && cp -a .vercel dist && cp -a vercel.json dist && vercel --prod dist",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
