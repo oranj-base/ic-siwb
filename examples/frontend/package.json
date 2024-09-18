@@ -20,7 +20,7 @@
     "antd": "^5.19.0",
     "bitcoinjs-lib": "^6.1.6",
     "cross-env": "^7.0.3",
-    "ic-use-siwb-identity": "file:///../../packages/ic-use-siwb-identity",
+    "ic-use-siwb-identity": "^0.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "sats-connect": "^2.5.0",
