@@ -1,23 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export const idlFactory = ({ IDL }: any) => {
-  const RuntimeFeature = IDL.Variant({
-    IncludeUriInSeed: IDL.Null,
-    DisableEthToPrincipalMapping: IDL.Null,
-    DisablePrincipalToEthMapping: IDL.Null,
-  });
-  const SettingsInput = IDL.Record({
-    uri: IDL.Text,
-    runtime_features: IDL.Opt(IDL.Vec(RuntimeFeature)),
-    domain: IDL.Text,
-    statement: IDL.Opt(IDL.Text),
-    scheme: IDL.Opt(IDL.Text),
-    salt: IDL.Text,
-    network: IDL.Opt(IDL.Text),
-    session_expires_in: IDL.Opt(IDL.Nat64),
-    targets: IDL.Opt(IDL.Vec(IDL.Text)),
-    sign_in_expires_in: IDL.Opt(IDL.Nat64),
-  });
+  // const RuntimeFeature = IDL.Variant({
+  //   IncludeUriInSeed: IDL.Null,
+  //   DisableEthToPrincipalMapping: IDL.Null,
+  //   DisablePrincipalToEthMapping: IDL.Null,
+  // });
+  // const SettingsInput = IDL.Record({
+  //   uri: IDL.Text,
+  //   runtime_features: IDL.Opt(IDL.Vec(RuntimeFeature)),
+  //   domain: IDL.Text,
+  //   statement: IDL.Opt(IDL.Text),
+  //   scheme: IDL.Opt(IDL.Text),
+  //   salt: IDL.Text,
+  //   network: IDL.Opt(IDL.Text),
+  //   session_expires_in: IDL.Opt(IDL.Nat64),
+  //   targets: IDL.Opt(IDL.Vec(IDL.Text)),
+  //   sign_in_expires_in: IDL.Opt(IDL.Nat64),
+  // });
   const Principal = IDL.Vec(IDL.Nat8);
   const String = IDL.Text;
   const Address = IDL.Text;
