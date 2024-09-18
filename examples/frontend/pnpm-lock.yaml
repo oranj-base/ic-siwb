@@ -32,6 +32,9 @@ importers:
       bitcoinjs-lib:
         specifier: ^6.1.6
         version: 6.1.6
+      cross-env:
+        specifier: ^7.0.3
+        version: 7.0.3
       ic-use-siwb-identity:
         specifier: file:///../../packages/ic-use-siwb-identity
         version: file:../../packages/ic-use-siwb-identity(@dfinity/agent@1.4.0(@dfinity/candid@1.4.0(@dfinity/principal@1.4.0))(@dfinity/principal@1.4.0))(@dfinity/candid@1.4.0(@dfinity/principal@1.4.0))(@dfinity/identity@1.4.0(@dfinity/agent@1.4.0(@dfinity/candid@1.4.0(@dfinity/principal@1.4.0))(@dfinity/principal@1.4.0))(@dfinity/principal@1.4.0)(@peculiar/webcrypto@1.5.0))(react@18.3.1)
@@ -1099,6 +1102,11 @@ packages:
 
   create-require@1.1.1:
     resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
+
+  cross-env@7.0.3:
+    resolution: {integrity: sha512-+/HKd6EgcQCJGh2PSjZuUitQBQynKor4wrFbRg4DtAgS1aWO+gU52xpH7M9ScGgXSYmAVS9bIJ8EzuaGw0oNAw==}
+    engines: {node: '>=10.14', npm: '>=6', yarn: '>=1'}
+    hasBin: true
 
   cross-spawn@7.0.3:
     resolution: {integrity: sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w==}
@@ -3490,6 +3498,10 @@ snapshots:
       sha.js: 2.4.11
 
   create-require@1.1.1: {}
+
+  cross-env@7.0.3:
+    dependencies:
+      cross-spawn: 7.0.3
 
   cross-spawn@7.0.3:
     dependencies:
