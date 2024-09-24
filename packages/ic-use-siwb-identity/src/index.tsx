@@ -1,18 +1,40 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, type ReactNode, useEffect, useState, useRef } from 'react';
+import {
+  createContext,
+  useContext,
+  type ReactNode,
+  useEffect,
+  useState,
+  useRef,
+} from 'react';
 import { type ActorConfig, type HttpAgentOptions } from '@dfinity/agent';
 import { DelegationIdentity, Ed25519KeyIdentity } from '@dfinity/identity';
 import type { SiwbIdentityContextType } from './context.type';
 
 import { IDL } from '@dfinity/candid';
-import type { LoginOkResponse, SIWB_IDENTITY_SERVICE, SignedDelegation as ServiceSignedDelegation, SignMessageType } from './service.interface';
+import type {
+  LoginOkResponse,
+  SIWB_IDENTITY_SERVICE,
+  SignedDelegation as ServiceSignedDelegation,
+  SignMessageType,
+} from './service.interface';
 import { clearIdentity, loadIdentity, saveIdentity } from './local-storage';
-import { callGetDelegation, callLogin, callPrepareLogin, createAnonymousActor } from './siwb-provider';
+import {
+  callGetDelegation,
+  callLogin,
+  callPrepareLogin,
+  createAnonymousActor,
+} from './siwb-provider';
 import type { State } from './state.type';
 import { createDelegationChain } from './delegation';
 import { normalizeError } from './error';
-import { AddressType, getAddressType, getRegisterExtension, type WalletProviderKey } from './wallet';
+import {
+  AddressType,
+  getAddressType,
+  getRegisterExtension,
+  type WalletProviderKey,
+} from './wallet';
 
 /**
  * Re-export types
@@ -24,7 +46,9 @@ export * from './storage.type';
 /**
  * React context for managing SIWB (Sign-In with Bitcoin) identity.
  */
-export const SiwbIdentityContext = createContext<SiwbIdentityContextType | undefined>(undefined);
+export const SiwbIdentityContext = createContext<
+  SiwbIdentityContextType | undefined
+>(undefined);
 
 /**
  * Hook to access the SiwbIdentityContext.
@@ -33,7 +57,9 @@ export const useSiwbIdentity = (): SiwbIdentityContextType => {
   const context = useContext(SiwbIdentityContext);
 
   if (!context) {
-    throw new Error('useSiwbIdentity must be used within an SiwbIdentityProvider');
+    throw new Error(
+      'useSiwbIdentity must be used within an SiwbIdentityProvider',
+    );
   }
   return context;
 };
@@ -102,7 +128,7 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
   });
 
   function updateState(newState: Partial<State>) {
-    setState(prevState => ({
+    setState((prevState) => ({
       ...prevState,
       ...newState,
     }));
@@ -110,15 +136,26 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
 
   // Keep track of the promise handlers for the login method during the async login process.
   const loginPromiseHandlers = useRef<{
-    resolve: (value: DelegationIdentity | PromiseLike<DelegationIdentity>) => void;
+    resolve: (
+      value: DelegationIdentity | PromiseLike<DelegationIdentity>,
+    ) => void;
     reject: (error: Error) => void;
   } | null>(null);
 
   // const { provider, address: connectedBtcAddress, network } = useRegisterExtension(state.selectedProvider);
 
   async function setWalletProvider(providerKey: WalletProviderKey) {
-    const { provider, address: connectedBtcAddress, network } = await getRegisterExtension(providerKey);
-    updateState({ selectedProvider: providerKey, provider, network, connectedBtcAddress });
+    const {
+      provider,
+      address: connectedBtcAddress,
+      network,
+    } = await getRegisterExtension(providerKey);
+    updateState({
+      selectedProvider: providerKey,
+      provider,
+      network,
+      connectedBtcAddress,
+    });
   }
 
   function getAddress() {
@@ -131,10 +168,14 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
    */
   async function prepareLogin(): Promise<string | undefined> {
     if (!state.anonymousActor) {
-      throw new Error('Hook not initialized properly. Make sure to supply all required props to the SiwbIdentityProvider.');
+      throw new Error(
+        'Hook not initialized properly. Make sure to supply all required props to the SiwbIdentityProvider.',
+      );
     }
     if (!state.connectedBtcAddress) {
-      throw new Error('No Bitcoin address available. Call prepareLogin after the user has connected their wallet.');
+      throw new Error(
+        'No Bitcoin address available. Call prepareLogin after the user has connected their wallet.',
+      );
     }
 
     updateState({
@@ -143,7 +184,10 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
     });
 
     try {
-      const siwbMessage = await callPrepareLogin(state.anonymousActor, state.connectedBtcAddress);
+      const siwbMessage = await callPrepareLogin(
+        state.anonymousActor,
+        state.connectedBtcAddress,
+      );
       updateState({
         siwbMessage,
         prepareLoginStatus: 'success',
@@ -159,7 +203,10 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
     }
   }
 
-  async function rejectLoginWithError(error: Error | unknown, message?: string) {
+  async function rejectLoginWithError(
+    error: Error | unknown,
+    message?: string,
+  ) {
     const e = normalizeError(error);
     const errorMessage = message || e.message;
 
@@ -185,7 +232,10 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
     error: Error | null,
   ) {
     if (error) {
-      rejectLoginWithError(error, 'An error occurred while signing the login message.');
+      rejectLoginWithError(
+        error,
+        'An error occurred while signing the login message.',
+      );
       return;
     }
     if (!loginSignature) {
@@ -223,18 +273,29 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
     // Call the backend's siwb_get_delegation method to get the delegation.
     let signedDelegation: ServiceSignedDelegation;
     try {
-      signedDelegation = await callGetDelegation(state.anonymousActor, state.connectedBtcAddress, sessionPublicKey, loginOkResponse.expiration);
+      signedDelegation = await callGetDelegation(
+        state.anonymousActor,
+        state.connectedBtcAddress,
+        sessionPublicKey,
+        loginOkResponse.expiration,
+      );
     } catch (e) {
       rejectLoginWithError(e, 'Unable to get identity.');
       return;
     }
 
     // Create a new delegation chain from the delegation.
-    const delegationChain = createDelegationChain(signedDelegation, loginOkResponse.user_canister_pubkey);
+    const delegationChain = createDelegationChain(
+      signedDelegation,
+      loginOkResponse.user_canister_pubkey,
+    );
 
     // Create a new delegation identity from the session identity and the
     // delegation chain.
-    const identity = DelegationIdentity.fromDelegation(sessionIdentity, delegationChain);
+    const identity = DelegationIdentity.fromDelegation(
+      sessionIdentity,
+      delegationChain,
+    );
 
     // Save the identity to local storage.
     saveIdentity(state.connectedBtcAddress, sessionIdentity, delegationChain);
@@ -268,15 +329,25 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
     // Set the promise handlers immediately to ensure they are available for error handling.
 
     if (!state.anonymousActor) {
-      rejectLoginWithError(new Error('Hook not initialized properly. Make sure to supply all required props to the SiwbIdentityProvider.'));
+      rejectLoginWithError(
+        new Error(
+          'Hook not initialized properly. Make sure to supply all required props to the SiwbIdentityProvider.',
+        ),
+      );
       return promise;
     }
     if (!state.connectedBtcAddress) {
-      rejectLoginWithError(new Error('No Bitcoin address available. Call login after the user has connected their wallet.'));
+      rejectLoginWithError(
+        new Error(
+          'No Bitcoin address available. Call login after the user has connected their wallet.',
+        ),
+      );
       return promise;
     }
     if (state.prepareLoginStatus === 'preparing') {
-      rejectLoginWithError(new Error("Don't call login while prepareLogin is running."));
+      rejectLoginWithError(
+        new Error("Don't call login while prepareLogin is running."),
+      );
       return promise;
     }
 
@@ -291,16 +362,24 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
       if (!siwbMessage) {
         siwbMessage = await prepareLogin();
         if (!siwbMessage) {
-          throw new Error('Prepare login failed did not return a SIWB message.');
+          throw new Error(
+            'Prepare login failed did not return a SIWB message.',
+          );
         }
       }
 
       if (state.provider !== undefined) {
         signMessageStatus = 'pending';
         let signMessageType;
-        if (state.selectedProvider === 'BitcoinProvider' || state.selectedProvider === 'xverse') {
+        if (
+          state.selectedProvider === 'BitcoinProvider' ||
+          state.selectedProvider === 'xverse'
+        ) {
           const [addressType, _] = getAddressType(state.connectedBtcAddress);
-          if (addressType === AddressType.P2TR || addressType === AddressType.P2WPKH) {
+          if (
+            addressType === AddressType.P2TR ||
+            addressType === AddressType.P2WPKH
+          ) {
             signMessageType = { Bip322Simple: null };
           } else {
             signMessageType = { ECDSA: null };
@@ -309,7 +388,9 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
           signMessageType = { ECDSA: null };
         }
         console.log({ signMessageType: JSON.stringify(signMessageType) });
-        const signature = await state.provider.signMessage(siwbMessage as string);
+        const signature = await state.provider.signMessage(
+          siwbMessage as string,
+        );
         updateState({
           signMessageType,
         });

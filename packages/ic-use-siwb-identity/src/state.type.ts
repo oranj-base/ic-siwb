@@ -1,8 +1,16 @@
 import type { DelegationChain, DelegationIdentity } from '@dfinity/identity';
 
 import type { ActorSubclass } from '@dfinity/agent';
-import type { SignMessageType, SIWB_IDENTITY_SERVICE } from './service.interface';
-import type { BitcoinProviderMaker, IWalletProvider, NetworkItem, WalletProviderKey } from './wallet';
+import type {
+  SignMessageType,
+  SIWB_IDENTITY_SERVICE,
+} from './service.interface';
+import type {
+  BitcoinProviderMaker,
+  IWalletProvider,
+  NetworkItem,
+  WalletProviderKey,
+} from './wallet';
 
 export type PrepareLoginStatus = 'error' | 'preparing' | 'success' | 'idle';
 export type LoginStatus = 'error' | 'logging-in' | 'success' | 'idle';

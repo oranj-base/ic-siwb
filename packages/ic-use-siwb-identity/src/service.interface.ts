@@ -42,6 +42,12 @@ export type Timestamp = bigint;
 
 export interface SIWB_IDENTITY_SERVICE {
   siwb_prepare_login: ActorMethod<[Address], PrepareLoginResponse>;
-  siwb_login: ActorMethod<[SiwbSignature, Address, PublickeyHex, SessionKey, SignMessageType], LoginResponse>;
-  siwb_get_delegation: ActorMethod<[Address, SessionKey, Timestamp], GetDelegationResponse>;
+  siwb_login: ActorMethod<
+    [SiwbSignature, Address, PublickeyHex, SessionKey, SignMessageType],
+    LoginResponse
+  >;
+  siwb_get_delegation: ActorMethod<
+    [Address, SessionKey, Timestamp],
+    GetDelegationResponse
+  >;
 }

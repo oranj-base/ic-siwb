@@ -2,7 +2,6 @@
 
 import type { EventEmitter } from 'stream';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export type SignMessageType = 'ecdsa' | 'bip322-simple';
 
 export type WalletProviderKey =
@@ -15,7 +14,13 @@ export type WalletProviderKey =
   | 'okxwallet.bitcoinSignet'
   | 'BitcoinProvider';
 
-export type NetworkType = 'testnet' | 'testnet4' | 'livenet' | 'mainnet' | 'signet' | 'bitcoin';
+export type NetworkType =
+  | 'testnet'
+  | 'testnet4'
+  | 'livenet'
+  | 'mainnet'
+  | 'signet'
+  | 'bitcoin';
 
 export interface IBitcoinProvider extends EventEmitter {
   request(method: string, params: any): Promise<any>;
@@ -35,7 +40,10 @@ export class BitcoinProviderMaker {
     throw new Error(`Provider ${providerKey} not found`);
   }
 
-  async signMessage(message: string, type?: string | SignMessageType): Promise<string> {
+  async signMessage(
+    message: string,
+    type?: string | SignMessageType,
+  ): Promise<string> {
     if (this.defaultAddress === undefined) {
       throw new Error(`Connect Wallet first`);
     }
@@ -44,18 +52,32 @@ export class BitcoinProviderMaker {
 
     if (type) {
       if (type.toLowerCase() === 'ecdsa') {
-        if (addressType === AddressType.P2TR || addressType === AddressType.P2WPKH || addressType === AddressType.P2SH_P2WPKH) {
-          throw new Error(`Wallet Type: ${addressType} not supoorted for sign message type: ${type}`);
+        if (
+          addressType === AddressType.P2TR ||
+          addressType === AddressType.P2WPKH ||
+          addressType === AddressType.P2SH_P2WPKH
+        ) {
+          throw new Error(
+            `Wallet Type: ${addressType} not supoorted for sign message type: ${type}`,
+          );
         }
       } else {
-        if (addressType === AddressType.P2PKH || addressType === AddressType.P2SH_P2WPKH) {
-          throw new Error(`Wallet Type: ${addressType} not supoorted for sign message type: ${type}`);
+        if (
+          addressType === AddressType.P2PKH ||
+          addressType === AddressType.P2SH_P2WPKH
+        ) {
+          throw new Error(
+            `Wallet Type: ${addressType} not supoorted for sign message type: ${type}`,
+          );
         }
       }
     }
 
     // we only support ecdsa sig for login currently, so we use paymentAddress to request ECDSA signature instead of p2tr
-    const { result: res } = await (this._inner.request('signMessage', { address: this.defaultAddress, message }) as Promise<{
+    const { result: res } = await (this._inner.request('signMessage', {
+      address: this.defaultAddress,
+      message,
+    }) as Promise<{
       result: {
         address: string;
         messageHash: string;
@@ -70,12 +92,21 @@ export class BitcoinProviderMaker {
   }
 
   async getAccounts(): Promise<string[]> {
-    const { result: addresses } = await (this._inner.request('getAccounts', { purposes: ['ordinals', 'payment'] }) as Promise<{
-      result: { address: string; addressType: string; publicKey: string; purpose: XverseAddressPurpose }[];
+    const { result: addresses } = await (this._inner.request('getAccounts', {
+      purposes: ['ordinals', 'payment'],
+    }) as Promise<{
+      result: {
+        address: string;
+        addressType: string;
+        publicKey: string;
+        purpose: XverseAddressPurpose;
+      }[];
     }>);
-    this.defaultAddress = addresses.length > 0 ? addresses[0]!.address : undefined;
-    this.defaultPublickey = addresses.length > 0 ? addresses[0]!.publicKey : undefined;
-    return addresses.map(a => a.address);
+    this.defaultAddress =
+      addresses.length > 0 ? addresses[0]!.address : undefined;
+    this.defaultPublickey =
+      addresses.length > 0 ? addresses[0]!.publicKey : undefined;
+    return addresses.map((a) => a.address);
   }
 
   async getPublicKey(): Promise<string> {
@@ -100,7 +131,11 @@ export class BitcoinProviderMaker {
 }
 
 export interface IWalletProvider {
-  fetchAndValidateFile(url: string, filePath: string, expectSHA: string): Promise<string>;
+  fetchAndValidateFile(
+    url: string,
+    filePath: string,
+    expectSHA: string,
+  ): Promise<string>;
 
   getProxy(): string | undefined;
 
@@ -118,7 +153,10 @@ export interface IWalletProvider {
   getPublicKey(): Promise<string>;
 
   // Sign message
-  signMessage(message: string, type?: string | SignMessageType): Promise<string>;
+  signMessage(
+    message: string,
+    type?: string | SignMessageType,
+  ): Promise<string>;
 
   // // Sign Psbt(hex)
   // signPsbt(psbtHex: string, options?: SignOptions): Promise<string>;
@@ -134,8 +172,14 @@ export interface IWalletProvider {
 
   pushPsbt(psbt: string): Promise<string>;
 
-  on(event: 'accountsChanged' | 'networkChanged', listener: (data: any) => void): this;
-  removeListener(event: 'accountsChanged' | 'networkChanged', listener: (data: any) => void): this;
+  on(
+    event: 'accountsChanged' | 'networkChanged',
+    listener: (data: any) => void,
+  ): this;
+  removeListener(
+    event: 'accountsChanged' | 'networkChanged',
+    listener: (data: any) => void,
+  ): this;
 }
 
 export interface NetworkItem {

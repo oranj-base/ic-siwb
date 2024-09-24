@@ -1,6 +1,16 @@
-import { HttpAgent, type ActorConfig, type HttpAgentOptions, Actor, type DerEncodedPublicKey, type ActorSubclass } from '@dfinity/agent';
+import {
+  HttpAgent,
+  type ActorConfig,
+  type HttpAgentOptions,
+  Actor,
+  type DerEncodedPublicKey,
+  type ActorSubclass,
+} from '@dfinity/agent';
 import type { IDL } from '@dfinity/candid';
-import type { SignMessageType, SIWB_IDENTITY_SERVICE } from './service.interface';
+import type {
+  SignMessageType,
+  SIWB_IDENTITY_SERVICE,
+} from './service.interface';
 
 /**
  * Creates an anonymous actor for interactions with the Internet Computer.
@@ -21,8 +31,10 @@ export function createAnonymousActor({
   const agent = new HttpAgent({ ...httpAgentOptions });
 
   if (process.env.DFX_NETWORK !== 'ic') {
-    agent.fetchRootKey().catch(err => {
-      console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
+    agent.fetchRootKey().catch((err) => {
+      console.warn(
+        'Unable to fetch root key. Check to ensure that your local replica is running',
+      );
       console.error(err);
     });
   }
@@ -34,7 +46,10 @@ export function createAnonymousActor({
   });
 }
 
-export async function callPrepareLogin(anonymousActor: ActorSubclass<SIWB_IDENTITY_SERVICE>, address: string | undefined) {
+export async function callPrepareLogin(
+  anonymousActor: ActorSubclass<SIWB_IDENTITY_SERVICE>,
+  address: string | undefined,
+) {
   if (!anonymousActor || !address) {
     throw new Error('Invalid actor or address');
   }
@@ -60,11 +75,23 @@ export async function callLogin(
   signMessageType: SignMessageType | undefined,
 ) {
   console.log({ signMessageType });
-  if (!anonymousActor || !data || !address || !publickeyHex || !signMessageType) {
+  if (
+    !anonymousActor ||
+    !data ||
+    !address ||
+    !publickeyHex ||
+    !signMessageType
+  ) {
     throw new Error('Invalid actor, data , address or signMessageType');
   }
 
-  const loginReponse = await anonymousActor.siwb_login(data, address, publickeyHex, new Uint8Array(sessionPublicKey), signMessageType);
+  const loginReponse = await anonymousActor.siwb_login(
+    data,
+    address,
+    publickeyHex,
+    new Uint8Array(sessionPublicKey),
+    signMessageType,
+  );
 
   if ('Err' in loginReponse) {
     throw new Error(loginReponse.Err);
@@ -86,7 +113,11 @@ export async function callGetDelegation(
     throw new Error('Invalid actor or address');
   }
 
-  const response = await anonymousActor.siwb_get_delegation(address, new Uint8Array(sessionPublicKey), expiration);
+  const response = await anonymousActor.siwb_get_delegation(
+    address,
+    new Uint8Array(sessionPublicKey),
+    expiration,
+  );
 
   if ('Err' in response) {
     throw new Error(response.Err);

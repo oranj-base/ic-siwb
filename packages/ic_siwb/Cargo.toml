@@ -43,5 +43,3 @@ hex-literal = "0.2.1"
 
 [features]
 nonce = ["rand_chacha", "ic-cdk-timers"]
-
-

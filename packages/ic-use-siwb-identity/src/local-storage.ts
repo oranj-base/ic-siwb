@@ -1,4 +1,8 @@
-import { DelegationChain, DelegationIdentity, Ed25519KeyIdentity } from '@dfinity/identity';
+import {
+  DelegationChain,
+  DelegationIdentity,
+  Ed25519KeyIdentity,
+} from '@dfinity/identity';
 
 import type { SiwbIdentityStorage } from './storage.type';
 
@@ -20,7 +24,10 @@ export function loadIdentity() {
   }
 
   const d = DelegationChain.fromJSON(JSON.stringify(s.delegationChain));
-  const i = DelegationIdentity.fromDelegation(Ed25519KeyIdentity.fromJSON(JSON.stringify(s.sessionIdentity)), d);
+  const i = DelegationIdentity.fromDelegation(
+    Ed25519KeyIdentity.fromJSON(JSON.stringify(s.sessionIdentity)),
+    d,
+  );
 
   return [s.address, i, d] as const;
 }
@@ -28,7 +35,11 @@ export function loadIdentity() {
 /**
  * Saves the SIWB identity to local storage.
  */
-export function saveIdentity(address: string, sessionIdentity: Ed25519KeyIdentity, delegationChain: DelegationChain) {
+export function saveIdentity(
+  address: string,
+  sessionIdentity: Ed25519KeyIdentity,
+  delegationChain: DelegationChain,
+) {
   localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify({
