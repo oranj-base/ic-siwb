@@ -4,9 +4,17 @@
   "private": true,
   "workspaces": [
     "packages/ic-use-siwb-identity",
+    "packages/ic-siwb-js",
     "examples/frontend"
   ],
   "devDependencies": {
     "prettier": "^3.3.3"
+  },
+  "resolutions": {
+    "@dfinity/agent": "2.1.1",
+    "@dfinity/auth-client": "2.1.1",
+    "@dfinity/candid": "2.1.1",
+    "@dfinity/identity-secp256k1": "2.1.1",
+    "@dfinity/principal": "2.1.1"
   }
 }

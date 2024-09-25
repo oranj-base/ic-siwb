@@ -1,0 +1,52 @@
+{
+  "name": "@oranjlabs/ic-siwb-js",
+  "version": "0.0.1",
+  "description": "SIWB enabled Internet Computer canisters.",
+  "author": "Edward Lee <edward@oranj.co>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/oranj-codebase/ic-siwb.git"
+  },
+  "bugs": "https://github.com/oranj-codebase/ic-siwb/issues",
+  "homepage": "https://github.com/oranj-codebase/ic-siwb",
+  "keywords": [
+    "dfinity",
+    "ic",
+    "internet computer",
+    "actor",
+    "siwb",
+    "bitcoin"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "clean": "rm -rf dist",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format:check": "prettier \"src/**/*.{ts,tsx}\"",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "lint": "eslint ./src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "build": "tsup-node",
+    "dev": "tsup-node --watch"
+  },
+  "dependencies": {
+    "xstate": "^5.18.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "esbuild": "^0.19.5",
+    "eslint": "^8.53.0",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "tsup": "^8.3.0",
+    "typescript": "^5.2.2"
+  },
+  "peerDependencies": {
+    "@dfinity/agent": ">=2.0.0",
+    "@dfinity/candid": ">=2.0.0",
+    "@dfinity/identity": ">=2.0.0",
+    "@dfinity/principal": ">=2.0.0"
+  }
+}
