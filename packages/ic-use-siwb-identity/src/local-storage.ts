@@ -23,13 +23,15 @@ export function loadIdentity() {
     throw new Error('Stored state is invalid.');
   }
 
-  const d = DelegationChain.fromJSON(JSON.stringify(s.delegationChain));
-  const i = DelegationIdentity.fromDelegation(
+  const delegationChain = DelegationChain.fromJSON(
+    JSON.stringify(s.delegationChain),
+  );
+  const delegationIdentity = DelegationIdentity.fromDelegation(
     Ed25519KeyIdentity.fromJSON(JSON.stringify(s.sessionIdentity)),
-    d,
+    delegationChain,
   );
 
-  return [s.address, i, d] as const;
+  return [s.address, delegationIdentity, delegationChain] as const;
 }
 
 /**
