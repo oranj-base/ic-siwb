@@ -4,19 +4,19 @@ import {
   DelegationIdentity,
   Ed25519KeyIdentity,
 } from '@dfinity/identity';
-import { assign, emit, fromPromise, log, setup } from 'xstate';
+import { assign, emit, fromPromise, setup } from 'xstate';
 
 import type {
   _SERVICE as SIWB_IDENTITY_SERVICE,
   SignMessageType as SignMessageRawType,
 } from './declarations/ic_siwb_provider.did';
 import { createDelegationChain } from './delegation';
-import { saveIdentity } from './local-storage';
 import {
   callGetDelegation,
   callLogin,
   callPrepareLogin,
 } from './siwb-provider';
+import { SiwbStorage } from './storage';
 import {
   AddressType,
   type BitcoinProviderMaker,
@@ -35,8 +35,8 @@ export type State =
   | 'connected'
   | 'preparing'
   | 'signing'
-  | 'logging'
-  | 'logged'
+  | 'authenticating'
+  | 'authenticated'
   | 'idle';
 
 export type Context = {
@@ -58,16 +58,26 @@ export type ConnectEvent = { type: 'CONNECT'; providerKey: WalletProviderKey };
 export type SignEvent = { type: 'SIGN' };
 export type Dispatch = ConnectEvent | SignEvent;
 
+export type ConnectingEvent = {
+  type: 'CONNECTING';
+  data: { providerKey: WalletProviderKey };
+};
 export type ConnectedEvent = {
   type: 'CONNECTED';
   data: {
     address: string;
+    addresses: string[];
     provider: SupportedProvider;
     providerKey: WalletProviderKey;
     network: NetworkItem;
   };
 };
 export type DisconnectedEvent = { type: 'DISCONNECTED' };
+export type SigningEvent = { type: 'SIGNING'; data: string };
+export type SignDataPreparedEvent = {
+  type: 'SIGN_DATA_PREPARED';
+  data: string;
+};
 export type SingatureSettledEvent = {
   type: 'SIGNATURE_SETTLED';
   data: {
@@ -76,37 +86,46 @@ export type SingatureSettledEvent = {
     signMessageType: SignMessageRawType;
   };
 };
-export type LoggedInEvent = { type: 'LOGGED_IN'; data: DelegationIdentity };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ErrorEvent<T = any> = {
+  type: 'ERROR';
+  data: T;
+};
+export type AuthenticatedEvent = {
+  type: 'AUTHENTICATED';
+  data: DelegationIdentity;
+};
 export type RootEvent =
+  // | ConnectingEvent
   | ConnectedEvent
   | DisconnectedEvent
+  | SignDataPreparedEvent
+  // | SigningEvent
   | SingatureSettledEvent
-  | LoggedInEvent;
+  | AuthenticatedEvent
+  | ErrorEvent;
 
 const init = fromPromise(async () => {
-  console.log('init');
   return { connected: false };
 });
 
 const connect = fromPromise<
   ConnectedEvent['data'],
-  { providerKey: WalletProviderKey }
->(async ({ input: { providerKey } }) => {
-  console.log('connect', providerKey);
-  const {
-    provider: connectedProvider,
-    address,
-    network,
-  } = await getRegisterExtension(providerKey);
-  console.log(connectedProvider);
-  if (!connectedProvider) {
+  { providerKey: WalletProviderKey },
+  ConnectingEvent
+>(async ({ input: { providerKey }, emit }) => {
+  emit({ type: 'CONNECTING', data: { providerKey } });
+  const { provider, address, network, addresses } =
+    await getRegisterExtension(providerKey);
+  if (!provider) {
     throw new Error('Provider not found');
   }
   if (!address || !network) {
     throw new Error('Address or network not found');
   }
 
-  return { address, network, provider: connectedProvider, providerKey };
+  return { address, addresses, network, provider, providerKey };
 });
 
 const prepare = fromPromise<
@@ -118,8 +137,8 @@ const prepare = fromPromise<
   return siwbMessage;
 });
 
-interface SignMessageParams {
-  selectedProviderKey: string;
+export interface SignMessageParams {
+  selectedProviderKey: WalletProviderKey;
   provider: SupportedProvider;
   address: string;
   siwbMessage: string;
@@ -127,24 +146,20 @@ interface SignMessageParams {
 
 const signMessage = fromPromise<
   SingatureSettledEvent['data'],
-  SignMessageParams
+  SignMessageParams,
+  SigningEvent
 >(
   async ({
     input: { siwbMessage, provider, address, selectedProviderKey },
+    emit,
   }) => {
-    console.log(`signMessage`, {
-      siwbMessage,
-      provider,
-      address,
-      selectedProviderKey,
-    });
+    emit({ type: 'SIGNING', data: siwbMessage });
     let signMessageType;
     if (
       selectedProviderKey === 'BitcoinProvider' ||
-      selectedProviderKey === 'xverse'
+      selectedProviderKey === 'XverseProviders'
     ) {
       const [addressType] = getAddressType(address);
-      console.log(addressType);
       if (
         addressType === AddressType.P2TR ||
         addressType === AddressType.P2WPKH
@@ -164,7 +179,7 @@ const signMessage = fromPromise<
   },
 );
 
-const login = fromPromise<
+const authenticate = fromPromise<
   DelegationIdentity,
   SingatureSettledEvent['data'] & {
     actor: ActorSubclass<SIWB_IDENTITY_SERVICE>;
@@ -174,10 +189,9 @@ const login = fromPromise<
   async ({
     input: { actor, publicKey, address, signMessageType, signature },
   }) => {
-    console.log('login', { signature, address, publicKey, signMessageType });
-
-    // Important for security! A random session identity is created on each login.
+    // Important for security! A random session identity is created on each authenticate.
     const sessionIdentity = Ed25519KeyIdentity.generate();
+
     const sessionPublicKey = sessionIdentity.getPublicKey().toDer();
 
     // Logging in is a two-step process. First, the signed SIWB message is sent to the backend.
@@ -190,7 +204,6 @@ const login = fromPromise<
       sessionPublicKey,
       signMessageType,
     );
-    console.log(loginOkResponse);
     // Call the backend's siwb_get_delegation method to get the delegation.
     const signedDelegation = await callGetDelegation(
       actor,
@@ -212,8 +225,8 @@ const login = fromPromise<
       delegationChain,
     );
 
-    // Save the identity to local storage.
-    saveIdentity(address, sessionIdentity, delegationChain);
+    // Save the identity to idb storage.
+    await SiwbStorage.save(sessionIdentity, delegationChain, address);
 
     return identity;
   },
@@ -231,7 +244,7 @@ export const siwbMachine = setup({
     connect,
     prepare,
     signMessage,
-    login,
+    authenticate,
   },
   guards: {
     isConnected: ({ context }) => context.connected,
@@ -255,7 +268,6 @@ export const siwbMachine = setup({
             assign(({ event: { output } }) => ({
               connected: output.connected,
             })),
-            log('Initialized'),
           ],
         },
         onError: 'idle',
@@ -267,7 +279,7 @@ export const siwbMachine = setup({
         src: 'connect',
         input: ({ context, event }) => ({
           providerKey:
-            context.providerKey ?? (event as ConnectEvent).providerKey,
+            (event as ConnectEvent)?.providerKey ?? context.providerKey,
         }),
         onDone: {
           target: 'preparing',
@@ -302,10 +314,20 @@ export const siwbMachine = setup({
           target: 'signing',
           actions: [
             assign(({ event: { output } }) => ({ siwbMessage: output })),
+            emit(({ event: { output } }) => ({
+              type: 'SIGN_DATA_PREPARED',
+              data: output,
+            })),
           ],
         },
         onError: {
           target: 'idle',
+          actions: [
+            emit(({ event: { error } }) => ({
+              type: 'ERROR',
+              data: error,
+            })),
+          ],
         },
       },
     },
@@ -320,7 +342,7 @@ export const siwbMachine = setup({
           selectedProviderKey: context.providerKey!,
         }),
         onDone: {
-          target: 'logging',
+          target: 'authenticating',
           actions: [
             emit(({ event: { output } }) => ({
               type: 'SIGNATURE_SETTLED',
@@ -335,13 +357,19 @@ export const siwbMachine = setup({
         },
         onError: {
           target: 'idle',
+          actions: [
+            emit(({ event: { error } }) => ({
+              type: 'ERROR',
+              data: error,
+            })),
+          ],
         },
       },
     },
-    logging: {
-      id: 'logging',
+    authenticating: {
+      id: 'authenticating',
       invoke: {
-        src: 'login',
+        src: 'authenticate',
         input: ({ context }) => ({
           actor: context.anonymousActor!,
           publicKey: context.publicKey!,
@@ -350,24 +378,34 @@ export const siwbMachine = setup({
           signMessageType: context.signMessageType!,
         }),
         onDone: {
-          target: 'logged',
+          target: 'authenticated',
           actions: [
             assign(({ event: { output } }) => ({
               identity: output,
             })),
             emit(({ event: { output } }) => ({
-              type: 'LOGGED_IN',
+              type: 'AUTHENTICATED',
               data: output,
             })),
           ],
         },
         onError: {
           target: 'idle',
+          actions: [
+            emit(({ event: { error } }) => ({
+              type: 'ERROR',
+              data: error,
+            })),
+          ],
         },
       },
     },
-    logged: {
-      id: 'logged',
+    authenticated: {
+      id: 'authenticated',
+      on: {
+        CONNECT: 'connecting',
+        SIGN: { target: 'signing', guard: 'isConnected' },
+      },
     },
     idle: {
       id: 'idle',

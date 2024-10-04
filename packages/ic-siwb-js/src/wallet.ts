@@ -9,7 +9,7 @@ export type WalletProviderKey =
   | 'wizz'
   | 'unisat'
   | 'atom'
-  | 'xverse'
+  | 'XverseProviders'
   | 'okxwallet.bitcoinTestnet'
   | 'okxwallet.bitcoin'
   | 'okxwallet.bitcoinSignet'
@@ -221,11 +221,10 @@ export function getPropByKey(obj: any, key: string) {
 }
 
 export const getWalletProvider = (key: WalletProviderKey) => {
-  if (key == 'BitcoinProvider' || key == 'xverse') {
+  if (key == 'BitcoinProvider' || key == 'XverseProviders') {
     return BitcoinProviderMaker.createProvider('BitcoinProvider');
   } else {
     const provider = getPropByKey(window as any, key);
-    console.log({ provider, key });
     if (provider) return provider as IWalletProvider;
   }
 };
@@ -239,12 +238,14 @@ export async function getRegisterExtension(providerKey?: WalletProviderKey) {
   const provider = providerKey ? getWalletProvider(providerKey) : undefined;
   let address: string | undefined = undefined;
   let network: NetworkItem | undefined = undefined;
+  let addresses: string[] = [];
   const wp = provider;
   const accountChange = (accounts: string[]) => {
     if (isPageHidden()) {
       return;
     }
     address = accounts[0];
+    addresses = accounts;
   };
   const networkChange = (_n: string) => {
     (async () => {
@@ -270,6 +271,7 @@ export async function getRegisterExtension(providerKey?: WalletProviderKey) {
     const accounts = await wp?.requestAccounts();
     if (accounts && accounts.length > 0) {
       address = accounts[0];
+      addresses = accounts;
     }
   };
   if (wp) {
@@ -286,7 +288,7 @@ export async function getRegisterExtension(providerKey?: WalletProviderKey) {
     }
   }
 
-  return { provider, providerKey, address, network };
+  return { provider, providerKey, address, network, addresses };
 }
 
 export enum AddressType {
