@@ -4,8 +4,8 @@ export type {
   _SERVICE as SIWB_IDENTITY_SERVICE,
 } from './declarations/ic_siwb_provider.did';
 export * from './delegation';
+export * from './storage';
 export * from './siwb-provider';
 export * from './state-machine';
-export * from './storage';
 export * from './storage.type';
 export * from './wallet';
