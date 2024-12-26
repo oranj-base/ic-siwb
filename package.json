@@ -15,5 +15,8 @@
     "@dfinity/candid": "2.1.1",
     "@dfinity/identity-secp256k1": "2.1.1",
     "@dfinity/principal": "2.1.1"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "*"
   }
 }
