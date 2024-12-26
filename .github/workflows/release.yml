@@ -14,7 +14,8 @@ jobs:
         with:
           node-version: '20'
       - run: npm ci
-      - run: npm run build --workspace ic-siwb-js
-      - run: npm publish --access
-        env:
+      - run: npm run build --workspace packages/ic-siwb-js
+      - uses: JS-DevTools/npm-publish@v3
+        with:
+          package: packages/ic-siwb-js
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
