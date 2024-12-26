@@ -3,7 +3,7 @@ run-name: ic-siwb-js Publish to NPM
 
 on:
   push:
-    branches: main
+    branches: refactor/ic-siwb-js
 
 jobs:
   publish:
