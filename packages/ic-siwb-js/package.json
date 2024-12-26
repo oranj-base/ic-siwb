@@ -1,5 +1,5 @@
 {
-  "name": "@oranjlabs/ic-siwb-js",
+  "name": "@oranjbase/ic-siwb-js",
   "version": "0.0.1",
   "description": "SIWB enabled Internet Computer canisters.",
   "author": "Edward Lee <edward@oranj.co>",
