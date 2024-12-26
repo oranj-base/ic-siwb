@@ -4,8 +4,7 @@
   "private": true,
   "workspaces": [
     "packages/ic-use-siwb-identity",
-    "packages/ic-siwb-js",
-    "examples/frontend"
+    "packages/ic-siwb-js"
   ],
   "devDependencies": {
     "prettier": "^3.3.3"
