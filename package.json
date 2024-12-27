@@ -1,6 +1,6 @@
 {
   "name": "ic-siwb",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "workspaces": [
     "packages/ic-use-siwb-identity",
