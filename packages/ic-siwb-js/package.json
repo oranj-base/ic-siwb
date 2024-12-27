@@ -1,6 +1,6 @@
 {
   "name": "@oranjbase/ic-siwb-js",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "SIWB enabled Internet Computer canisters.",
   "author": "Edward Lee <edward@oranj.co>",
   "repository": {
