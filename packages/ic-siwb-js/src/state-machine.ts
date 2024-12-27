@@ -5,18 +5,17 @@ import {
   Ed25519KeyIdentity,
 } from '@dfinity/identity';
 import { assign, emit, fromPromise, setup } from 'xstate';
-
 import type {
   _SERVICE as SIWB_IDENTITY_SERVICE,
   SignMessageType as SignMessageRawType,
 } from './declarations/ic_siwb_provider.did';
 import { createDelegationChain } from './delegation';
+
 import {
   callGetDelegation,
   callLogin,
   callPrepareLogin,
 } from './siwb-provider';
-import { SiwbStorage } from './storage';
 import {
   AddressType,
   type BitcoinProviderMaker,
@@ -27,6 +26,7 @@ import {
   type SupportedProvider,
   type WalletProviderKey,
 } from './wallet';
+import { SiwbStorage } from './storage';
 
 export type State =
   | 'initializing'
@@ -86,8 +86,6 @@ export type SingatureSettledEvent = {
     signMessageType: SignMessageRawType;
   };
 };
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ErrorEvent<T = any> = {
   type: 'ERROR';
   data: T;
@@ -157,7 +155,8 @@ const signMessage = fromPromise<
     let signMessageType;
     if (
       selectedProviderKey === 'BitcoinProvider' ||
-      selectedProviderKey === 'XverseProviders'
+      selectedProviderKey === 'XverseProviders.BitcoinProvider' ||
+      selectedProviderKey === 'OrangecryptoProviders.BitcoinProvider'
     ) {
       const [addressType] = getAddressType(address);
       if (
@@ -299,6 +298,12 @@ export const siwbMachine = setup({
         },
         onError: {
           target: 'idle',
+          actions: [
+            emit(({ event: { error } }) => ({
+              type: 'ERROR',
+              data: error,
+            })),
+          ],
         },
       },
     },

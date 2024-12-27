@@ -4,8 +4,7 @@
   "private": true,
   "workspaces": [
     "packages/ic-use-siwb-identity",
-    "packages/ic-siwb-js",
-    "examples/frontend"
+    "packages/ic-siwb-js"
   ],
   "devDependencies": {
     "prettier": "^3.3.3"
@@ -16,5 +15,8 @@
     "@dfinity/candid": "2.1.1",
     "@dfinity/identity-secp256k1": "2.1.1",
     "@dfinity/principal": "2.1.1"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "*"
   }
 }

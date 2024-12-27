@@ -67,7 +67,8 @@ export const idlFactory: IDL.InterfaceFactory = ({ IDL }) => {
     DisableEthToPrincipalMapping: IDL.Null,
     DisablePrincipalToEthMapping: IDL.Null,
   });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
   const SettingsInput = IDL.Record({
     uri: IDL.Text,
     runtime_features: IDL.Opt(IDL.Vec(RuntimeFeature)),

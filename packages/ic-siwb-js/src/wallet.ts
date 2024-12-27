@@ -9,11 +9,12 @@ export type WalletProviderKey =
   | 'wizz'
   | 'unisat'
   | 'atom'
-  | 'XverseProviders'
+  | 'XverseProviders.BitcoinProvider'
   | 'okxwallet.bitcoinTestnet'
   | 'okxwallet.bitcoin'
   | 'okxwallet.bitcoinSignet'
-  | 'BitcoinProvider';
+  | 'BitcoinProvider'
+  | 'OrangecryptoProviders.BitcoinProvider';
 
 export type NetworkType =
   | 'testnet'
@@ -27,13 +28,21 @@ export interface IBitcoinProvider extends EventEmitter {
   request(method: string, params: any): Promise<any>;
 }
 
+export interface BTCWalletBalance {
+  total: number;
+  confirmed: number;
+  unconfirmed: number;
+}
+
 export type XverseAddressPurpose = 'ordinals' | 'payment';
 
 export class BitcoinProviderMaker {
   private defaultAddress: string | undefined;
   private defaultPublickey: string | undefined;
   constructor(private _inner: IBitcoinProvider) {}
-  static createProvider(providerKey: 'BitcoinProvider'): BitcoinProviderMaker {
+  static createProvider(
+    providerKey: string = 'BitcoinProvider',
+  ): BitcoinProviderMaker {
     const provider = getPropByKey(window as any, providerKey);
     if (provider) {
       return new BitcoinProviderMaker(provider as IBitcoinProvider);
@@ -85,7 +94,8 @@ export class BitcoinProviderMaker {
         signature: string;
       };
     }>);
-    return res.signature;
+    if (res?.signature) return res.signature;
+    else throw new Error('User rejected request.');
   }
 
   async requestAccounts(): Promise<string[]> {
@@ -103,11 +113,13 @@ export class BitcoinProviderMaker {
         purpose: XverseAddressPurpose;
       }[];
     }>);
-    this.defaultAddress =
-      addresses.length > 0 ? addresses[0]!.address : undefined;
-    this.defaultPublickey =
-      addresses.length > 0 ? addresses[0]!.publicKey : undefined;
-    return addresses.map((a) => a.address);
+    if (addresses) {
+      this.defaultAddress =
+        addresses.length > 0 ? addresses[0]!.address : undefined;
+      this.defaultPublickey =
+        addresses.length > 0 ? addresses[0]!.publicKey : undefined;
+      return addresses.map((a) => a.address);
+    } else throw new Error('User rejected request.');
   }
 
   async getPublicKey(): Promise<string> {
@@ -122,6 +134,55 @@ export class BitcoinProviderMaker {
       throw new Error(`Connect Wallet first`);
     }
     return getAddressType(this.defaultAddress!)[1];
+  }
+
+  async getBalance(): Promise<BTCWalletBalance> {
+    interface Response {
+      jsonrpc: string;
+      result: {
+        total: string;
+        confirmed: string;
+        unconfirmed: string;
+      };
+      error?: {
+        code: number;
+        message: string;
+      };
+      id: string;
+    }
+    const res: Response = await this._inner.request('getBalance', undefined);
+    try {
+      return res.result as unknown as BTCWalletBalance;
+    } catch (e) {
+      throw res.error;
+    }
+  }
+
+  async sendBitcoin(address: string, amount: number): Promise<string> {
+    interface Response {
+      jsonrpc: string;
+      result: {
+        txid: string;
+      };
+      error?: {
+        code: number;
+        message: string;
+      };
+      id: string;
+    }
+    const res: Response = await this._inner.request('sendTransfer', {
+      recipients: [
+        {
+          address,
+          amount,
+        },
+      ],
+    });
+    try {
+      return res.result.txid;
+    } catch (e) {
+      throw res.error;
+    }
   }
   // on(event: 'accountsChanged' | 'networkChanged', listener: (data: any) => void) {
   //   this._inner.on(event, listener);
@@ -158,6 +219,14 @@ export interface IWalletProvider {
     message: string,
     type?: string | SignMessageType,
   ): Promise<string>;
+
+  // send Bitcoin
+
+  sendBitcoin(address: string, amount: number): Promise<string>;
+
+  // getBalance
+
+  getBalance(): Promise<BTCWalletBalance>;
 
   // // Sign Psbt(hex)
   // signPsbt(psbtHex: string, options?: SignOptions): Promise<string>;
@@ -221,11 +290,16 @@ export function getPropByKey(obj: any, key: string) {
 }
 
 export const getWalletProvider = (key: WalletProviderKey) => {
-  if (key == 'BitcoinProvider' || key == 'XverseProviders') {
-    return BitcoinProviderMaker.createProvider('BitcoinProvider');
-  } else {
-    const provider = getPropByKey(window as any, key);
-    if (provider) return provider as IWalletProvider;
+  switch (key) {
+    case 'BitcoinProvider':
+    case 'XverseProviders.BitcoinProvider':
+    case 'OrangecryptoProviders.BitcoinProvider': {
+      return BitcoinProviderMaker.createProvider(key);
+    }
+    default: {
+      const provider = getPropByKey(window as any, key);
+      if (provider) return provider as IWalletProvider;
+    }
   }
 };
 
